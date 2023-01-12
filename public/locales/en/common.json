@@ -1,0 +1,28 @@
+{
+  "save": "Save",
+  "cancel": "Cancel",
+  "create": "Create",
+  "search": {
+    "verb": "Search",
+    "noun_one": "Search",
+    "noun_other": "Searches",
+    "noun_zero": "No Searches"
+  },
+  "delete": "Delete",
+  "add": "Add",
+  "edit": "Edit",
+  "update": "Update",
+  "back": "Back",
+  "reset": "Reset",
+  "show": "Show",
+  "yes": "Yes",
+  "no": "No",
+  "please_wait": "Please wait",
+  "loading": "Loading",
+  "processing": "Processing",
+  "new": "New",
+  "confirm": "Confirm",
+  "language": "Language",
+  "account": "Account",
+  "wishlist": "Wish List"
+}

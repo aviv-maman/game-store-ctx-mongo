@@ -1,0 +1,143 @@
+h1 {
+    font-weight: 300;
+}
+
+.results {
+    color: #7a92a5;
+    font-size: 12px;
+    margin: 12px 5px;
+}
+
+header {
+    width: 100%;
+    flex-shrink: 0;
+    border-radius: 6px;
+    background-color: #fff;
+    box-shadow: 0 2px 6px 1px #e1e5e8;
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #fff;
+    padding: 10px 20px;
+    position: relative;
+}
+
+.tickets {
+
+    margin: 0;
+    padding: 0;
+
+}
+
+.ticket {
+    width: 100%;
+    flex-shrink: 0;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 6px 1px #e1e5e8;
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #fff;
+    padding: 10px 20px;
+    transition: box-shadow .2s ease-in-out;
+    position: relative;
+}
+
+.title {
+    margin: 15px 0;
+    font-size: 16px;
+    font-weight: 400;
+    font-style: normal;
+    color: #20455e;
+    word-wrap: break-word;
+}
+
+.styledLink {
+    color: #3899ec;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 12px;
+    width: fit-content;
+}
+
+.hiddenStyledButton {
+    color: #20455e;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 12px;
+    visibility: hidden;
+    opacity: 0.1;
+    transition: 0.3s;
+}
+
+.ticket:hover .hiddenStyledButton {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.3s linear;
+}
+
+.styledHeader {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.meta-data2 {
+    display: flex;
+    align-items: center;
+}
+
+.labels-container {
+    display: flex;
+    justify-content: space-evenly;
+    gap: 7px;
+}
+
+.single-label {
+    border: #0088ff 1px solid;
+    border-radius: 4px;
+    padding: 0 4px;
+    background-color: #9ecaf0;
+    opacity: 0.8;
+}
+
+.show-more {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    /* number of lines to show */
+    line-clamp: 3;
+    -webkit-box-orient: vertical
+}
+
+.primary-button {
+    display: inline-block;
+    padding: 0.3em 1.2em;
+    margin: 0 0.1em 0.1em 0;
+    border: 0.16em solid rgba(255, 255, 255, 0);
+    border-radius: 4px;
+    box-sizing: border-box;
+    text-decoration: none;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 300;
+    color: #000000;
+    text-shadow: 0 0.04em 0.04em rgba(0, 0, 0, 0.35);
+    text-align: center;
+    transition: all 0.2s;
+    border-color: #458bd6;
+}
+
+.primary-button:hover {
+    background-color: #82b4e9;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.primary-button:disabled {
+    background-color: #efefef;
+    border-color: #c5c5c5;
+    color: rgba(0, 0, 0, 0.35);
+    box-shadow: none;
+    cursor: default;
+}

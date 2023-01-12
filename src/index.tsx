@@ -1,16 +1,23 @@
+// 3rd Party Imports
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
+import { createRoot } from 'react-dom/client';
 import reportWebVitals from './reportWebVitals';
+//Components
+import App from './App';
+//Context
+import { GlobalContextProvider } from './core/context/GlobalContextProvider';
+//CSS
+import './index.css';
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
+const container = document.getElementById('root')!;
+const root = createRoot(container);
+
 root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+  <React.Suspense fallback='Loading Language...'>
+    <GlobalContextProvider>
+      <App />
+    </GlobalContextProvider>
+  </React.Suspense>
 );
 
 // If you want to start measuring performance in your app, pass a function
