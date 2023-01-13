@@ -7,8 +7,6 @@ import { authAPI } from '../app/services/authAPI';
 import { languages } from '../core/languages';
 import { useGlobalContext } from '../core/context/initialContextState';
 import { GlobalActionKeys } from '../core/context/action';
-//Hooks
-import { useAuth } from '../hooks/useAuth';
 //PrimeReact
 import { Menubar } from 'primereact/menubar';
 import { PrimeIcons } from 'primereact/api';
@@ -21,8 +19,6 @@ export default function MainNavBar() {
   const navigate = useNavigate();
   const { dispatch, state } = useGlobalContext();
 
-  const userAuth = useAuth();
-
   const { i18n, t } = useTranslation();
 
   const handleLogout = async () => {
@@ -30,8 +26,7 @@ export default function MainNavBar() {
       const res = await api.logOut();
       console.log(res);
       if (res.message) {
-        //useEffect in useAuth will do it
-        // dispatch({ type: GlobalActionKeys.UpdateUser, payload: null });
+        dispatch({ type: GlobalActionKeys.UpdateUser, payload: null });
         navigate('/');
       } else {
         throw new Error(`${res.code}: ${res.message}`);

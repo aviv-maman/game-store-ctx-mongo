@@ -1,7 +1,7 @@
 import { PropsWithChildren } from 'react';
 import type { FC } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useGlobalContext } from '../core/context/initialContextState';
 
 type AuthorizedRouteProps = PropsWithChildren<{
   requireAuthorization?: boolean;
@@ -11,9 +11,9 @@ type AuthorizedRouteProps = PropsWithChildren<{
 
 const AuthorizedRoute: FC<AuthorizedRouteProps> = ({ requireAuthorization, requireGuest, children }) => {
   const location = useLocation();
-  const auth = useAuth(); //OR const { state } = useGlobalContext();
+  const { state } = useGlobalContext();
 
-  if (requireAuthorization && !auth.user) {
+  if (requireAuthorization && !state.user) {
     //OR if (requireAuthorization && !state.user) {
     // Redirect them to the /login page, but save the current location they were
     // trying to go to when they were redirected. This allows us to send them
@@ -22,7 +22,7 @@ const AuthorizedRoute: FC<AuthorizedRouteProps> = ({ requireAuthorization, requi
     return <Navigate to='/login' state={{ from: location }} replace />;
   }
 
-  if (requireGuest && auth.user) {
+  if (requireGuest && state.user) {
     //OR if (requireGuest && state.user) {
     return <Navigate to='/' replace />;
   }

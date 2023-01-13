@@ -18,6 +18,8 @@ import EditProductPage, { editProductAction, editProductLoader } from './pages/E
 import 'primereact/resources/themes/lara-light-indigo/theme.css'; //theme
 import 'primereact/resources/primereact.min.css'; //core css
 import 'primeicons/primeicons.css'; //icons
+//Init
+import { useAuth } from './hooks/useAuth';
 
 function App() {
   const router = createBrowserRouter(
@@ -87,6 +89,8 @@ function App() {
       </Route>
     )
   );
+
+  useAuth();
 
   return <RouterProvider router={router} fallbackElement={<SpinnerChase />} />;
 }

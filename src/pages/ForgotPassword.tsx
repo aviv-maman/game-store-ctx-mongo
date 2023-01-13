@@ -5,10 +5,9 @@ import { Form, useActionData, useLocation, useNavigate, useNavigation } from 're
 import type { ActionFunctionArgs } from 'react-router-dom';
 //Services
 import { authAPI } from '../app/services/authAPI';
-//Hooks
-import { useAuth } from '../hooks/useAuth';
 //PrimeReact
 import { Button } from 'primereact/button';
+import { useGlobalContext } from '../core/context/initialContextState';
 
 //API calls
 const api = authAPI();
@@ -33,7 +32,7 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState('');
 
   // To check if user is already logged in and prevent them from resetting password
-  const auth = useAuth(); //OR const { state } = useGlobalContext();
+  const { state } = useGlobalContext();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -43,10 +42,10 @@ export default function ForgotPassword() {
   const navigation = useNavigation();
 
   useEffect(() => {
-    if (actionData?.success && !auth?.user) {
+    if (actionData?.success && !state?.user) {
       navigate(from, { replace: true });
     }
-  }, [actionData, auth, navigate, from]);
+  }, [actionData, state, navigate, from]);
 
   return (
     <div>
