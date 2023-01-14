@@ -71,13 +71,18 @@ export default function AddFormProduct({ data }: FormAddProductProps) {
       <p>{t('add_new_game')}</p>
       <Form method='post' id='add-game-form'>
         <label>
-          <span>{t('title')}</span>
-          <InputText name='title' type='text' onChange={handleChange} required />
+          <span>{t('name')}</span>
+          <InputText name='name' type='text' onChange={handleChange} required />
         </label>
 
         <label>
           <span>{t('type')}</span>
           <InputText name='type' type='text' onChange={handleChange} />
+        </label>
+
+        <label>
+          <span>{t('price')}</span>
+          <InputText name='price' type='number' onChange={handleChange} />
         </label>
 
         <label>

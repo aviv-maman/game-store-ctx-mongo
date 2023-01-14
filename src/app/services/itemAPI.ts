@@ -11,7 +11,7 @@ export enum PageType {
 
 export type Franchise = {
   id: string;
-  title: string;
+  name: string;
   description: string;
   developer: string[];
   publisher: string[];
@@ -36,7 +36,7 @@ export enum EditionName {
 
 export type Game = {
   id: string;
-  title: string;
+  name: string;
   description: string;
   editions: EditionName[];
   dlcs?: DLC[];
@@ -51,7 +51,7 @@ export type Game = {
   languages: string[];
   age_rating: string[];
   tags?: string[];
-  cover?: string;
+  imageCover?: string;
   screenshots?: string[];
   videos?: string[];
   achievements?: string[];
@@ -65,7 +65,7 @@ export type Game = {
 
 export type DLC = {
   id: string;
-  title: string;
+  name: string;
   description: string;
   developer: string[];
   publisher: string[];
@@ -78,7 +78,7 @@ export type DLC = {
   languages?: string[];
   age_rating?: string[];
   tags?: string[];
-  cover?: string;
+  imageCover?: string;
   screenshots?: string[];
   videos?: string[];
   achievements?: string[];
@@ -100,16 +100,15 @@ export type ServerResponse = {
 };
 
 export type Query = {
-  q?: { operator?: string; value: string };
-  type?: { operator?: string; value: string[] };
-  genre?: { operator?: string; value: string[] };
+  q?: string;
+  type?: string[];
+  genre?: string[];
   perPage?: number;
   orderBy?: { fieldPath: string; directionStr: 'asc' | 'desc' };
-  lastVisibleDoc?: string;
   page?: number;
 };
 
-export type FirebaseItemsAPI = {
+export type ItemsAPI = {
   getItems: (query: Query) => Promise<{ success: boolean; data: Game[] }> | unknown;
   getItemById: (itemId: string) => Promise<any>;
   addItem: (formData: Game) => Promise<any>;
@@ -117,12 +116,12 @@ export type FirebaseItemsAPI = {
   updateItemById: (itemId: string, formData: Game) => Promise<any>;
 };
 
-export const itemsAPI = (collectionName: string): FirebaseItemsAPI => {
+export const itemsAPI = (): ItemsAPI => {
   return {
     getItems: async (queryObject) => {
       const controller = new AbortController();
       try {
-        const res = await axios.get(`http://localhost:3100/product`, { withCredentials: true });
+        const res = await axios.get(`http://localhost:8000/api/v1/products`, { params: queryObject, withCredentials: true });
         return { success: true, ...res.data };
       } catch (error) {
         if (controller.signal.aborted) {
@@ -138,7 +137,7 @@ export const itemsAPI = (collectionName: string): FirebaseItemsAPI => {
     getItemById: async (docId: string) => {
       const controller = new AbortController();
       try {
-        const res = await axios.get(`http://localhost:3100/product/${docId}`, { withCredentials: true });
+        const res = await axios.get(`http://localhost:8000/api/v1/products/${docId}`, { withCredentials: true });
         return { success: true, ...res.data };
       } catch (error: any) {
         if (controller.signal.aborted) {
@@ -153,7 +152,7 @@ export const itemsAPI = (collectionName: string): FirebaseItemsAPI => {
     addItem: async (formData) => {
       const controller = new AbortController();
       try {
-        const res = await axios.post(`http://localhost:3100/product`, { withCredentials: true });
+        const res = await axios.post(`http://localhost:8000/api/v1/products`, formData, { withCredentials: true });
         return { success: true, message: 'A document was successfully added.', ...res.data };
       } catch (error) {
         if (controller.signal.aborted) {
@@ -168,7 +167,7 @@ export const itemsAPI = (collectionName: string): FirebaseItemsAPI => {
     deleteItemById: async (docId: string) => {
       const controller = new AbortController();
       try {
-        await axios.delete(`http://localhost:3100/product/${docId}`, { withCredentials: true });
+        await axios.delete(`http://localhost:8000/api/v1/products/${docId}`, { withCredentials: true });
         return { success: true, message: 'A document was successfully deleted.', id: docId };
       } catch (error) {
         if (controller.signal.aborted) {
@@ -183,7 +182,7 @@ export const itemsAPI = (collectionName: string): FirebaseItemsAPI => {
     updateItemById: async (docId: string, formData: Game) => {
       const controller = new AbortController();
       try {
-        await axios.put(`http://localhost:3100/product/${docId}`, formData, { withCredentials: true });
+        await axios.put(`http://localhost:8000/api/v1/products/${docId}`, formData, { withCredentials: true });
         return { success: true, message: 'A document was successfully updated.', id: docId };
       } catch (error) {
         if (controller.signal.aborted) {

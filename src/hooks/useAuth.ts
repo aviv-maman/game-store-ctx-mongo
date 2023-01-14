@@ -31,7 +31,7 @@ export const useAuth = () => {
     [dispatch]
   );
 
-  useEffect(() => {
-    cachedFn();
-  }, [cachedFn]);
+  // useEffect(() => {
+  //   cachedFn();
+  // }, [cachedFn]);
 };

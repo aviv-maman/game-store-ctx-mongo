@@ -78,8 +78,8 @@ export default function EditFormProduct({ loaderData, actionData }: EditFormProd
         {loaderData.result && typeof loaderData.result === 'object' ? (
           <>
             <label>
-              <span>{t('title')}</span>
-              <InputText name='title' type='text' value={editedGame.title} onChange={handleChange} required />
+              <span>{t('name')}</span>
+              <InputText name='name' type='text' value={editedGame.name} onChange={handleChange} required />
             </label>
             <label>
               <span>{t('type')}</span>
@@ -94,8 +94,8 @@ export default function EditFormProduct({ loaderData, actionData }: EditFormProd
         ) : (
           <>
             <label>
-              <span>{t('title')}</span>
-              <InputText name='title' type='text' disabled />
+              <span>{t('name')}</span>
+              <InputText name='name' type='text' disabled />
             </label>
             <label>
               <span>{t('type')}</span>

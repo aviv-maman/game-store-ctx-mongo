@@ -13,7 +13,7 @@ type GameListProps = {
 };
 
 //API calls
-const api = itemsAPI('products');
+const api = itemsAPI();
 
 const GameList: FC<GameListProps> = ({ items }) => {
   const [filteredItems, setFilteredItems] = useState<Game[]>(items);

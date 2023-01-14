@@ -7,7 +7,7 @@ import SpinnerFlow from '../components/spinners/SpinnerFlow';
 import SpinnerWave from '../components/spinners/SpinnerWave';
 
 //API calls
-const api = itemsAPI('products');
+const api = itemsAPI();
 
 export async function rootLoader({ request }: LoaderFunctionArgs): Promise<any> {
   const url = new URL(request.url);
@@ -19,16 +19,18 @@ export async function rootLoader({ request }: LoaderFunctionArgs): Promise<any> 
 }
 
 export default function HomePage() {
-  // const { fetchedGames }: any = useRouteLoaderData('root'); //loader function: not real time data
-  // const realTimeData = useCollection<Item>('products', where('title', '==', 'Marvel’s Spider-Man Remastered'), limit(1));
-
   return (
     <div>
       <SpinnerFlow />
       <SpinnerChase />
       <SpinnerWave />
-      {/* {realTimeData.data && <GameList items={realTimeData.data} />}
-      {realTimeData.count && <p>{realTimeData.count}</p>} */}
+
+      <button
+        onClick={() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}>
+        scroll to top
+      </button>
     </div>
   );
 }

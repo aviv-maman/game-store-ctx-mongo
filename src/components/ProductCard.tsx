@@ -24,7 +24,7 @@ const ProductCard: FC<ProductCardProps> = ({ item, handleDelete }) => {
         <span className='hiddenStyledButton'>Hide</span>
       </div>
 
-      <h1>{item.title}</h1>
+      <h1>{item.name}</h1>
       <h5 className={`${showMore ? 'title' : 'title show-more'}`}>{item.description}</h5>
       <span className='styledLink' onClick={toggleShowMore}>
         {`${showMore ? 'Show Less' : 'Show More'}`}

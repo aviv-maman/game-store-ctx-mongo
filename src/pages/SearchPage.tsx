@@ -24,20 +24,18 @@ import type { PaginatorPageState } from 'primereact/paginator';
 type SearchPageProps = {};
 
 //API calls
-const api = itemsAPI('products');
+const api = itemsAPI();
 
 //Loader
-export async function searchLoader({ request }: LoaderFunctionArgs): Promise<{ fetchedGames?: Game[]; qValue: string }> {
+export async function searchLoader({ request }: LoaderFunctionArgs): Promise<{ fetchedGames?: Game[]; q: string }> {
   const url = new URL(request.url);
   if (!url.searchParams.get('page') || Number(url.searchParams.get('page')) === 0) {
     url.searchParams.set('page', '1');
   }
 
-  const qValue = url.searchParams.get('q') ?? '';
-  const q = { value: qValue };
+  const q = url.searchParams.get('q') ?? '';
 
-  const typeValue = url.searchParams.get('type')?.split(',') ?? [];
-  const type = { value: typeValue };
+  const type = url.searchParams.get('type')?.split(',') ?? [];
 
   const orderByValue = url.searchParams.get('sort')?.split(',') ?? [];
   const orderBy = { fieldPath: orderByValue[0] as string, directionStr: orderByValue[1] as 'asc' | 'desc' };
@@ -51,6 +49,16 @@ export async function searchLoader({ request }: LoaderFunctionArgs): Promise<{ f
     data: Game[];
   };
 
+  url.searchParams.forEach((value, key) => {
+    if (!value.length || !value) {
+      url.searchParams.delete(key);
+      console.log('deleted:', key);
+      window.history.replaceState({}, '', `${window.location.pathname}?${url.searchParams}`);
+    }
+  });
+
+  // const { success, data } = { success: true, data: [] };
+
   console.log(request.url);
 
   if (!success) {
@@ -59,16 +67,16 @@ export async function searchLoader({ request }: LoaderFunctionArgs): Promise<{ f
       statusText: 'Error 404: Products Not Found',
     });
   }
-  return { fetchedGames: data, qValue };
+  return { fetchedGames: data, q };
 }
 
 const SearchPage: FC<SearchPageProps> = ({}) => {
-  const { fetchedGames, qValue } = useLoaderData() as { fetchedGames: Game[]; qValue: string };
+  const { fetchedGames, q } = useLoaderData() as { fetchedGames: Game[]; q: string };
   const navigation = useNavigation(); //useNavigation to add global pending UI. useNavigation returns "idle" | "submitting" | "loading"
   const searching = navigation.location && new URLSearchParams(navigation.location.search).has('q');
 
   //Search Params
-  const [searchParams, setSearchParams] = useSearchParams(qValue);
+  const [searchParams, setSearchParams] = useSearchParams(q);
   const [currentPage, setCurrentPage] = useState(Number(searchParams.get('page')) === 0 ? 1 : Number(searchParams.get('page')));
   const [sort, setSort] = useState(
     searchParams.get('sort')?.split(',')[0] && searchParams.get('sort')?.split(',')[1]
@@ -77,7 +85,7 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
           direction: searchParams.get('sort')?.split(',')[1],
         }
       : {
-          field: 'title' as string,
+          field: 'name' as string,
           direction: 'asc',
         }
   );
@@ -101,12 +109,15 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
 
     //add new params (type) and redirect to first page
     searchParams.set('type', selectedTypes.join(','));
-    window.location.search = searchParams.toString();
+
+    // window.history.replaceState({}, 'name', searchParams.toString());
+
+    // window.location.search = searchParams.toString();
   };
 
   const orderByItems = [
-    { label: 'Name (A-Z)', value: { field: 'title', direction: 'asc' } },
-    { label: 'Name (Z-A)', value: { field: 'title', direction: 'desc' } },
+    { label: 'Name (A-Z)', value: { field: 'name', direction: 'asc' } },
+    { label: 'Name (Z-A)', value: { field: 'name', direction: 'desc' } },
     { label: 'Release Date (Old-New)', value: { field: 'release_date', direction: 'asc' } },
     { label: 'Release Date (New-Old)', value: { field: 'release_date', direction: 'desc' } },
     { label: 'Price (Low-High)', value: { field: 'price', direction: 'asc' } },
@@ -124,32 +135,48 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
     window.location.search = searchParams.toString();
   }
 
-  const [newFetchedGames, setNewFetchedGames] = useState(fetchedGames);
-
   const onPageChange = async (event: PaginatorPageState) => {
-    setCurrentPage(event.first);
+    setCurrentPage(1 + event.page);
     setItemsPerPage(event.rows);
 
     searchParams.set('page', (1 + event.page).toString());
-    window.location.search = searchParams.toString();
+    console.log('event.first:', event.first, 'event.page + 1:', 1 + event.page);
+
+    // window.location.search = searchParams.toString();
+    window.history.pushState({}, '', `${window.location.pathname}?${searchParams}`);
+    console.log(searchParams.toString());
+
+    const { success, data } = (await api.getItems({
+      q,
+      type: types,
+      orderBy: { fieldPath: sort.field, directionStr: sort.direction as 'asc' | 'desc' },
+      perPage: itemsPerPage,
+      page: currentPage,
+    })) as {
+      success: boolean;
+      data: Game[];
+    };
+
+    console.log(data);
   };
 
   useEffect(() => {
-    (document.getElementById('q') as HTMLInputElement).value = qValue;
+    (document.getElementById('q') as HTMLInputElement).value = q;
     if (searchParams.get('type') !== null && searchParams.get('type') !== '') {
       setTypes((prevState) => searchParams.get('type')?.split(',') ?? []);
     }
-  }, [qValue]);
+  }, [q]);
 
   useEffect(() => {
     //Delete empty params
     searchParams.forEach((value, key) => {
-      if (value.length === 0 || value === undefined || value === null || value === '') {
+      if (!value.length || !value) {
         searchParams.delete(key);
         console.log('deleted:', key);
         // window.history.replaceState({}, '', `${window.location.pathname}?${searchParams}`);
       }
     });
+    console.log('make api call to search', Array.from(searchParams.values()));
   }, [searchParams]);
 
   return (
@@ -228,7 +255,7 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
           </div>
         </div>
       </Form>
-      <GameList items={newFetchedGames} />
+      <GameList items={fetchedGames} />
       <Paginator
         first={currentPage ? itemsPerPage * (currentPage - 1) : 0}
         rows={itemsPerPage}

@@ -14,7 +14,7 @@ import { Toast } from 'primereact/toast';
 import type { ToastAppendToType } from 'primereact/toast';
 
 //API calls
-const api = itemsAPI('products');
+const api = itemsAPI();
 
 export type AddProductAction = { success: boolean; message: string };
 
