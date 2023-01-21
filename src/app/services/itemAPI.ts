@@ -103,7 +103,7 @@ export type Query = {
   q?: string;
   type?: string;
   genre?: string[];
-  perPage?: number;
+  limit?: number;
   order?: string;
   page?: number;
   name?: string;

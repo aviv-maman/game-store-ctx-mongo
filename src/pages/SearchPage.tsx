@@ -22,6 +22,8 @@ import { Paginator } from 'primereact/paginator';
 import type { PaginatorPageState } from 'primereact/paginator';
 import { Slider } from 'primereact/slider';
 import type { SliderChangeParams, SliderValueType } from 'primereact/slider';
+import { AutoComplete } from 'primereact/autocomplete';
+import type { AutoCompleteChangeParams } from 'primereact/autocomplete';
 
 type SearchPageProps = {};
 
@@ -77,24 +79,24 @@ export async function searchLoader({ request }: LoaderFunctionArgs): Promise<{ f
   const isMaxPrice = url.searchParams.get('max_price');
   const maxPrice = isMaxPrice ? Number(url.searchParams.get('max_price')) : undefined;
 
-  // const perPage = Number(url.searchParams.get('perPage') ?? 10);
+  // const perPage = Number(url.searchParams.get('limit') ?? 10);
 
-  const { success, data } = (await api.getItems({
-    name: q,
-    type,
-    from_date,
-    until_date,
-    release_date,
-    exact_price: { price, currency: preferred_currency },
-    price_range: { minPrice, maxPrice, currency: preferred_currency },
-    order,
-    page,
-  })) as {
-    success: boolean;
-    data: Game[];
-  };
+  // const { success, data } = (await api.getItems({
+  //   name: q,
+  //   type,
+  //   from_date,
+  //   until_date,
+  //   release_date,
+  //   exact_price: { price, currency: preferred_currency },
+  //   price_range: { minPrice, maxPrice, currency: preferred_currency },
+  //   order,
+  //   page,
+  // })) as {
+  //   success: boolean;
+  //   data: Game[];
+  // };
 
-  // const { success, data } = { success: true, data: [] };
+  const { success, data } = { success: true, data: [] };
 
   if (!success) {
     throw new Response('', {
@@ -189,6 +191,26 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
   let searchDebounce: NodeJS.Timeout;
 
   const [rangeValues, setRangeValues] = useState([Number(searchParams.get('min_price')) || 0, Number(searchParams.get('max_price')) || 100]);
+  const [selectedCountry1, setSelectedCountry1] = useState<string>('');
+  const [filteredCountries, setFilteredCountries] = useState<Game[]>([]);
+
+  const searchCountry = (event: { query: string }) => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(async () => {
+      let _filteredCountries: Game[];
+      if (!event.query.trim().length) {
+        _filteredCountries = [];
+      } else {
+        const { data } = (await api.getItems({
+          name: selectedCountry1.toLowerCase(),
+          limit: 7,
+          // price_range: { minPrice: rangeValues[0], maxPrice: rangeValues[1], currency: 'usd' },
+        })) as { success: boolean; data: Game[] };
+        _filteredCountries = [...data];
+      }
+      setFilteredCountries(_filteredCountries);
+    }, 2000);
+  };
 
   return (
     <div>
@@ -199,21 +221,22 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
             <div className='p-inputgroup'>
               <InputText
                 id='q'
-                name={searchParams.get('q') || qValue ? 'q' : ''}
+                name={searchParams.get('q') || qValue.length ? 'q' : ''}
                 placeholder='Search Products'
                 type='search'
-                value={qValue}
-                onChange={(event) => {
-                  const isFirstSearch = q == null;
-                  clearTimeout(searchDebounce);
-                  searchDebounce = setTimeout(async () => {}, 1000);
-                  setQValue(event.target.value);
-                  // submit(event.currentTarget.form, {
-                  //   replace: !isFirstSearch,
-                  // });
-                }}
+                // value={qValue}
               />
               <Button type='submit' icon='pi pi-search' className='p-button-warning' />
+              <h5>Basic</h5>
+              <AutoComplete
+                value={selectedCountry1}
+                suggestions={filteredCountries}
+                completeMethod={searchCountry}
+                field='name'
+                onChange={(e: AutoCompleteChangeParams) => setSelectedCountry1(e.value)}
+                aria-label='Countries'
+                dropdownAriaLabel='Select Country'
+              />
             </div>
 
             <h5>Product Type</h5>
