@@ -44,7 +44,7 @@ export type Game = {
   publisher: string[];
   release_date: number;
   genres: string[];
-  price: number[];
+  price: { usd: number; eur: number; nis: number };
   steam_url?: string;
   epic_url?: string;
   official_url?: string;
@@ -101,11 +101,17 @@ export type ServerResponse = {
 
 export type Query = {
   q?: string;
-  type?: string[];
+  type?: string;
   genre?: string[];
   perPage?: number;
-  orderBy?: { fieldPath: string; directionStr: 'asc' | 'desc' };
+  order?: string;
   page?: number;
+  name?: string;
+  from_date?: string;
+  until_date?: string;
+  release_date?: string;
+  exact_price?: { price?: number; currency?: string };
+  price_range?: { minPrice?: number; maxPrice?: number; currency?: string };
 };
 
 export type ItemsAPI = {

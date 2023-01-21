@@ -18,6 +18,9 @@ const ProductCard: FC<ProductCardProps> = ({ item, handleDelete }) => {
   const toggleShowMore = (): void => setShowMore(!showMore);
   const navigate = useNavigate();
 
+  const user = JSON.parse(localStorage.getItem('user') as string) ?? undefined;
+  const preferred_currency = user?.preferred_currency ?? 'usd';
+
   return (
     <li className='ticket'>
       <div className='styledHeader'>
@@ -31,7 +34,8 @@ const ProductCard: FC<ProductCardProps> = ({ item, handleDelete }) => {
       </span>
       <footer>
         <div className='meta-data'>
-          by {item.developer} | {item.release_date} | ${item.price}
+          by {item.developer} | {item.release_date} |
+          {preferred_currency === 'nis' ? `₪${item.price.nis}` : preferred_currency === 'eur' ? `€${item.price.eur}` : `$${item.price.usd}`}
         </div>
         <div className='meta-data2'>
           <span className='styledLink' onClick={() => navigate(`/product/${item.id}/edit`)}>

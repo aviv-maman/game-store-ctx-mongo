@@ -68,7 +68,7 @@ export const authAPI = (): FirebaseAuthAPI => {
     logOut: async () => {
       const controller = new AbortController();
       try {
-        await axios.post('http://localhost:8000/api/v1/users/logout', {}, { withCredentials: true });
+        await axios.get('http://localhost:8000/api/v1/users/logout', { withCredentials: true });
         return { message: 'A user was successfully logged out.' };
       } catch (error: any) {
         if (controller.signal.aborted) {
