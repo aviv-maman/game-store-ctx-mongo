@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import type { FC } from 'react';
 //React Router DOM
-import { Form, useLoaderData, useNavigation, useSearchParams, useSubmit } from 'react-router-dom';
+import { Form, useLoaderData, useNavigate, useNavigation, useSearchParams, useSubmit } from 'react-router-dom';
 import type { LoaderFunctionArgs } from 'react-router-dom';
 //API
 import { itemsAPI, PageType } from '../app/services/itemAPI';
@@ -23,7 +23,7 @@ import type { PaginatorPageState } from 'primereact/paginator';
 import { Slider } from 'primereact/slider';
 import type { SliderChangeParams, SliderValueType } from 'primereact/slider';
 import { AutoComplete } from 'primereact/autocomplete';
-import type { AutoCompleteChangeParams } from 'primereact/autocomplete';
+import type { AutoCompleteChangeParams, AutoCompleteSelectParams } from 'primereact/autocomplete';
 
 type SearchPageProps = {};
 
@@ -111,8 +111,8 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
   const { fetchedGames, q } = useLoaderData() as { fetchedGames: Game[]; q: string };
   const navigation = useNavigation(); //useNavigation to add global pending UI. useNavigation returns "idle" | "submitting" | "loading"
   const searching = navigation.location && new URLSearchParams(navigation.location.search).has('q');
-
   const submit = useSubmit();
+  const navigate = useNavigate();
 
   //Search Params
   const [searchParams, setSearchParams] = useSearchParams(q);
@@ -201,11 +201,7 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
       if (!event.query.trim().length) {
         _filteredCountries = [];
       } else {
-        const { data } = (await api.getItems({
-          name: selectedCountry1.toLowerCase(),
-          limit: 7,
-          // price_range: { minPrice: rangeValues[0], maxPrice: rangeValues[1], currency: 'usd' },
-        })) as { success: boolean; data: Game[] };
+        const { data } = (await api.getItems({ name: selectedCountry1.toLowerCase(), limit: 7 })) as { success: boolean; data: Game[] };
         _filteredCountries = [...data];
       }
       setFilteredCountries(_filteredCountries);
@@ -236,6 +232,7 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
                 onChange={(e: AutoCompleteChangeParams) => setSelectedCountry1(e.value)}
                 aria-label='Countries'
                 dropdownAriaLabel='Select Country'
+                onSelect={(e: AutoCompleteSelectParams) => navigate(`/product/${e.value.type}/${e.value.slug}`)}
               />
             </div>
 
@@ -331,7 +328,7 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
       <Paginator
         first={currentPage ? itemsPerPage * (currentPage - 1) : 0}
         rows={itemsPerPage}
-        totalRecords={30}
+        totalRecords={fetchedGames.length}
         // rowsPerPageOptions={[10, 15, 20]}
         onPageChange={onPageChange}
       />
