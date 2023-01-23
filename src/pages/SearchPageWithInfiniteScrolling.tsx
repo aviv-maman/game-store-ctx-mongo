@@ -1,8 +1,8 @@
 //React
-import { useEffect, useState } from 'react';
-import type { FC } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { FC, MutableRefObject } from 'react';
 //React Router DOM
-import { Form, useLoaderData, useNavigate, useNavigation, useSearchParams, useSubmit } from 'react-router-dom';
+import { Form, useFetcher, useLoaderData, useNavigate, useNavigation, useSearchParams, useSubmit } from 'react-router-dom';
 import type { LoaderFunctionArgs } from 'react-router-dom';
 //API
 import { itemsAPI, PageType } from '../app/services/itemAPI';
@@ -25,7 +25,7 @@ import type { SliderChangeParams, SliderValueType } from 'primereact/slider';
 import { AutoComplete } from 'primereact/autocomplete';
 import type { AutoCompleteChangeParams, AutoCompleteSelectParams } from 'primereact/autocomplete';
 
-type SearchPageProps = {};
+type SearchPageWithInfiniteScrollingProps = {};
 
 //API calls
 const api = itemsAPI();
@@ -37,7 +37,9 @@ const prepareDate = (date: string) => {
 };
 
 //Loader
-export async function searchLoader({ request }: LoaderFunctionArgs): Promise<{ fetchedGames?: Game[]; q: string }> {
+export async function searchWithInfiniteScrollingLoader({
+  request,
+}: LoaderFunctionArgs): Promise<{ fetchedGames?: Game[]; q: string; totalCount: number; currentCount: number }> {
   const url = new URL(request.url);
   if (!url.searchParams.get('page') || Number(url.searchParams.get('page')) === 0) {
     url.searchParams.set('page', '1');
@@ -81,22 +83,24 @@ export async function searchLoader({ request }: LoaderFunctionArgs): Promise<{ f
 
   // const perPage = Number(url.searchParams.get('limit') ?? 10);
 
-  // const { success, data } = (await api.getItems({
-  //   name: q,
-  //   type,
-  //   from_date,
-  //   until_date,
-  //   release_date,
-  //   exact_price: { price, currency: preferred_currency },
-  //   price_range: { minPrice, maxPrice, currency: preferred_currency },
-  //   order,
-  //   page,
-  // })) as {
-  //   success: boolean;
-  //   data: Game[];
-  // };
+  const { success, data, totalCount, currentCount } = (await api.getItems({
+    name: q,
+    type,
+    from_date,
+    until_date,
+    release_date,
+    exact_price: { price, currency: preferred_currency },
+    price_range: { minPrice, maxPrice, currency: preferred_currency },
+    order,
+    page,
+  })) as {
+    success: boolean;
+    data: Game[];
+    totalCount: number;
+    currentCount: number;
+  };
 
-  const { success, data } = { success: true, data: [] };
+  //   const { success, data, totalCount, currentCount } = { success: true, data: Array.from([]) as Game[], totalCount: 100, currentCount: 10 };
 
   if (!success) {
     throw new Response('', {
@@ -104,15 +108,23 @@ export async function searchLoader({ request }: LoaderFunctionArgs): Promise<{ f
       statusText: 'Error 404: Products Not Found',
     });
   }
-  return { fetchedGames: data, q };
+  return { fetchedGames: data, q, totalCount, currentCount };
 }
 
-const SearchPage: FC<SearchPageProps> = ({}) => {
-  const { fetchedGames, q } = useLoaderData() as { fetchedGames: Game[]; q: string };
+const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> = ({}) => {
+  const { fetchedGames, q, totalCount, currentCount } = useLoaderData() as {
+    fetchedGames: Game[];
+    q: string;
+    totalCount: number;
+    currentCount: number;
+  };
   const navigation = useNavigation(); //useNavigation to add global pending UI. navigation.state returns "idle" | "submitting" | "loading". For pagination
   const searching = navigation.location && new URLSearchParams(navigation.location.search).has('q');
   const submit = useSubmit();
   const navigate = useNavigate();
+
+  //The useFetcher hook allows us to communicate with loaders and actions without causing a navigation
+  const fetcher = useFetcher();
 
   //Search Params
   const [searchParams, setSearchParams] = useSearchParams(q);
@@ -207,6 +219,29 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
       setFilteredCountries(_filteredCountries);
     }, 2000);
   };
+
+  const observer: MutableRefObject<any> = useRef();
+  // For infinite scrolling
+  const elementRef = useCallback(
+    (node: any) => {
+      if (navigation.state !== 'idle') {
+        return;
+      }
+      if (observer?.current) {
+        observer?.current?.disconnect();
+      }
+      const hasNextPage = totalCount > itemsPerPage * currentPage - 1 + currentCount;
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasNextPage) {
+          //Load next page if last element is visible
+        }
+      });
+      if (node) {
+        observer?.current?.observe(node);
+      }
+    },
+    [navigation.state, totalCount, itemsPerPage, currentPage, currentCount]
+  );
 
   return (
     <div>
@@ -328,7 +363,7 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
       <Paginator
         first={currentPage ? itemsPerPage * (currentPage - 1) : 0}
         rows={itemsPerPage}
-        totalRecords={fetchedGames.length}
+        totalRecords={totalCount}
         // rowsPerPageOptions={[10, 15, 20]}
         onPageChange={onPageChange}
       />
@@ -336,4 +371,4 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
   );
 };
 
-export default SearchPage;
+export default SearchPageWithInfiniteScrolling;

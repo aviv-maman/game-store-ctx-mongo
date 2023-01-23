@@ -20,6 +20,7 @@ import 'primereact/resources/primereact.min.css'; //core css
 import 'primeicons/primeicons.css'; //icons
 //Init
 import { useAuth } from './hooks/useAuth';
+import SearchPageWithInfiniteScrolling, { searchWithInfiniteScrollingLoader } from './pages/SearchPageWithInfiniteScrolling';
 
 function App() {
   const router = createBrowserRouter(
@@ -56,7 +57,12 @@ function App() {
             action={forgotPasswordAction}
             // errorElement={<div>Oops! Login error. Line 33</div>}
           />
-          <Route path='search' element={<SearchPage />} loader={searchLoader} errorElement={<div>Oops! Fetch error. Line 52</div>} />
+          <Route
+            path='search'
+            element={<SearchPageWithInfiniteScrolling />}
+            loader={searchWithInfiniteScrollingLoader}
+            errorElement={<div>Oops! Fetch error. Line 52</div>}
+          />
           <Route
             path='product/:productId'
             element={<ProductPage />}
