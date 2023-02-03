@@ -1,7 +1,7 @@
 //React
 import { useEffect, useState } from 'react';
 //React-Router-DOM
-import { Form, useActionData, useFetcher, useLocation, useNavigate, useNavigation } from 'react-router-dom';
+import { Form, useActionData, useLocation, useNavigate, useNavigation } from 'react-router-dom';
 import type { ActionFunctionArgs } from 'react-router-dom';
 //Services
 import { authAPI } from '../app/services/authAPI';
@@ -41,7 +41,6 @@ export default function LoginPage() {
   //React-Router-DOM & Context
   const actionData = useActionData() as LogInActionData;
   const navigation = useNavigation(); //navigation.state === 'loading', 'submitting', 'idle'
-  const fetcher = useFetcher(); //fetcher.state === 'loading', 'submitting', 'idle'
 
   useEffect(() => {
     if (actionData && actionData.user) {
@@ -92,10 +91,9 @@ export default function LoginPage() {
           Google
         </Button>
       </Form>
-      {fetcher.state !== 'idle' && <p>{'fetcher.state loading'}</p>}
       {navigation.state !== 'idle' && <p>{'navigation.state loading'}</p>}
-      {actionData && actionData.code && <p>{actionData.code}</p>}
-      {actionData && actionData.message && <p>{actionData.message}</p>}
+      {navigation.state === 'idle' && actionData?.code && <p>{actionData.code}</p>}
+      {navigation.state === 'idle' && actionData?.message && <p>{actionData.message}</p>}
     </div>
   );
 }

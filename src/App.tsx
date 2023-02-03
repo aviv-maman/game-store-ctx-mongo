@@ -14,6 +14,8 @@ import ProductPage from './pages/ProductPage';
 import SearchPage, { searchLoader } from './pages/SearchPage';
 import AddProductPage, { addProductAction } from './pages/AddProductPage';
 import EditProductPage, { editProductAction, editProductLoader } from './pages/EditProductPage';
+
+import { sendVerificationAction } from './pages/VerifyEmail';
 //CSS
 import 'primereact/resources/themes/lara-light-indigo/theme.css'; //theme
 import 'primereact/resources/primereact.min.css'; //core css
@@ -21,6 +23,8 @@ import 'primeicons/primeicons.css'; //icons
 //Init
 import { useAuth } from './hooks/useAuth';
 import SearchPageWithInfiniteScrolling, { searchWithInfiniteScrollingLoader } from './pages/SearchPageWithInfiniteScrolling';
+import ProfilePage from './pages/ProfilePage';
+import EmailVerificationPage, { verifyAction } from './pages/EmailVerificationPage';
 
 function App() {
   const router = createBrowserRouter(
@@ -88,7 +92,24 @@ function App() {
             }
             // loader={addProductLoader}
             action={addProductAction}
-            errorElement={<div>Oops! ErrorElement Line 85</div>}
+            errorElement={<div>Oops! ErrorElement Line 94</div>}
+          />
+          <Route
+            path='profile'
+            element={
+              <AuthorizedRoute requireAuthorization>
+                <ProfilePage />
+              </AuthorizedRoute>
+            }
+            // loader={addProductLoader}
+            errorElement={<div>Oops! ErrorElement Line 104</div>}
+          />
+          <Route path='profile/send-verification-email' action={sendVerificationAction} errorElement={<div>Oops! ErrorElement Line 106</div>} />
+          <Route
+            path='profile/verify-email/:verificationToken'
+            element={<EmailVerificationPage />}
+            action={verifyAction}
+            errorElement={<div>Oops! ErrorElement Line 107</div>}
           />
           <Route path='*' element={<ErrorPage status={404} />} />
         </Route>

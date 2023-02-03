@@ -10,12 +10,13 @@ import type { Game } from '../app/services/itemAPI';
 
 type GameListProps = {
   items: Game[];
+  elementRef?: any;
 };
 
 //API calls
 const api = itemsAPI();
 
-const GameList: FC<GameListProps> = ({ items }) => {
+const GameList: FC<GameListProps> = ({ items, elementRef }) => {
   const [filteredItems, setFilteredItems] = useState<Game[]>(items);
 
   useEffect(() => {
@@ -38,7 +39,7 @@ const GameList: FC<GameListProps> = ({ items }) => {
     <div className='game-list'>
       <ul>
         {filteredItems.map((item) => (
-          <ProductCard item={item} key={item.id} handleDelete={handleDelete} />
+          <ProductCard item={item} key={item.id} handleDelete={handleDelete} elementRef={elementRef} />
         ))}
       </ul>
     </div>

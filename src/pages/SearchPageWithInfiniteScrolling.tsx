@@ -55,6 +55,7 @@ export async function searchWithInfiniteScrollingLoader({
   const order = orderBy[0] ? mongoOrderByOperator + mongoOrderByFieldPath : '-release_date';
 
   const page = Number(url.searchParams.get('page'));
+  console.log('loader - page', page);
 
   const fromDate = url.searchParams.get('from_date') ?? '';
   const from_date = fromDate ? prepareDate(fromDate) : '';
@@ -83,24 +84,40 @@ export async function searchWithInfiniteScrollingLoader({
 
   // const perPage = Number(url.searchParams.get('limit') ?? 10);
 
-  const { success, data, totalCount, currentCount } = (await api.getItems({
-    name: q,
-    type,
-    from_date,
-    until_date,
-    release_date,
-    exact_price: { price, currency: preferred_currency },
-    price_range: { minPrice, maxPrice, currency: preferred_currency },
-    order,
-    page,
-  })) as {
-    success: boolean;
-    data: Game[];
-    totalCount: number;
-    currentCount: number;
-  };
+  // const { success, data, totalCount, currentCount } = (await api.getItems({
+  //   name: q,
+  //   type,
+  //   from_date,
+  //   until_date,
+  //   release_date,
+  //   exact_price: { price, currency: preferred_currency },
+  //   price_range: { minPrice, maxPrice, currency: preferred_currency },
+  //   order,
+  //   page,
+  // })) as {
+  //   success: boolean;
+  //   data: Game[];
+  //   totalCount: number;
+  //   currentCount: number;
+  // };
 
-  //   const { success, data, totalCount, currentCount } = { success: true, data: Array.from([]) as Game[], totalCount: 100, currentCount: 10 };
+  const { success, data, totalCount, currentCount } = {
+    success: true,
+    data: [
+      { id: Math.random() * 9999, name: `#01 of page ${page}`, price: 2, description: 'bb', developer: ['a'], publisher: ['f'], type: 'game' },
+      { id: Math.random() * 9999, name: `#02 of page ${page}`, price: 2, description: 'bb', developer: ['a'], publisher: ['f'], type: 'game' },
+      { id: Math.random() * 9999, name: `#03 of page ${page}`, price: 2, description: 'bb', developer: ['a'], publisher: ['f'], type: 'game' },
+      { id: Math.random() * 9999, name: `#04 of page ${page}`, price: 2, description: 'bb', developer: ['a'], publisher: ['f'], type: 'game' },
+      { id: Math.random() * 9999, name: `#05 of page ${page}`, price: 2, description: 'bb', developer: ['a'], publisher: ['f'], type: 'game' },
+      { id: Math.random() * 9999, name: `#06 of page ${page}`, price: 2, description: 'bb', developer: ['a'], publisher: ['f'], type: 'game' },
+      { id: Math.random() * 9999, name: `#07 of page ${page}`, price: 2, description: 'bb', developer: ['a'], publisher: ['f'], type: 'game' },
+      { id: Math.random() * 9999, name: `#08 of page ${page}`, price: 2, description: 'bb', developer: ['a'], publisher: ['f'], type: 'game' },
+      { id: Math.random() * 9999, name: `#09 of page ${page}`, price: 2, description: 'bb', developer: ['a'], publisher: ['f'], type: 'game' },
+      { id: Math.random() * 9999, name: `#10 of page ${page}`, price: 2, description: 'bb', developer: ['a'], publisher: ['f'], type: 'game' },
+    ] as any[],
+    totalCount: 50,
+    currentCount: 10,
+  };
 
   if (!success) {
     throw new Response('', {
@@ -125,6 +142,46 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
 
   //The useFetcher hook allows us to communicate with loaders and actions without causing a navigation
   const fetcher = useFetcher();
+
+  //Optimize performance of big lists //
+  const [count, setCount] = useState(1_000);
+  const [scrollTop, setScrollTop] = useState(0);
+  const itemHeight = 30;
+  const windowHeight = 500;
+  const innerHeight = count * itemHeight;
+  const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - 3);
+  const endIndex = Math.min(Math.floor((scrollTop + windowHeight) / itemHeight) + 3, count);
+  const items = Array.from({ length: count }, (_, i) => {
+    return {
+      index: i + 1,
+      name: `Movie ${i + 1}`,
+    };
+  });
+
+  function displayMovieItems() {
+    const displayedItems = items.slice(startIndex, endIndex);
+    const movieList = displayedItems.map((item) => {
+      return (
+        <div
+          key={item.index}
+          style={{
+            height: itemHeight,
+            position: 'absolute',
+            width: '100%',
+            top: `${item.index * itemHeight}px`,
+          }}>
+          {item.name}
+        </div>
+      );
+    });
+
+    return movieList;
+  }
+
+  function onScroll(event: React.UIEvent<HTMLDivElement>) {
+    setScrollTop(event.currentTarget.scrollTop);
+  }
+  ///////////////
 
   //Search Params
   const [searchParams, setSearchParams] = useSearchParams(q);
@@ -195,10 +252,6 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
     submit({ page: page.toString(), type: type.join(',') }, {});
   };
 
-  useEffect(() => {
-    (document.getElementById('q') as HTMLInputElement).value = q;
-  }, [q]);
-
   const [qValue, setQValue] = useState(q);
   let searchDebounce: NodeJS.Timeout;
 
@@ -220,32 +273,45 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
     }, 2000);
   };
 
+  const [infiniteScroll, setInfiniteScroll] = useState(fetchedGames);
   const observer: MutableRefObject<any> = useRef();
   // For infinite scrolling
   const elementRef = useCallback(
     (node: any) => {
-      if (navigation.state !== 'idle') {
+      if (fetcher.state !== 'idle') {
         return;
       }
       if (observer?.current) {
         observer?.current?.disconnect();
       }
-      const hasNextPage = totalCount > itemsPerPage * currentPage - 1 + currentCount;
+      const hasNextPage = totalCount > itemsPerPage * (currentPage - 1) + currentCount;
       observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasNextPage) {
+        if (entries[0].isIntersecting && hasNextPage && fetcher.state === 'idle') {
           //Load next page if last element is visible
+          console.log('Load next page if last element is visible');
+          setCurrentPage((prevState) => prevState + 1);
+          console.log(currentPage);
+          searchParams.set('page', (currentPage + 1).toString());
+          fetcher.submit({ page: (currentPage + 1).toString() }, {});
         }
       });
       if (node) {
         observer?.current?.observe(node);
       }
     },
-    [navigation.state, totalCount, itemsPerPage, currentPage, currentCount]
+    [fetcher, totalCount, itemsPerPage, currentPage, currentCount, searchParams]
   );
+
+  useEffect(() => {
+    if (fetcher.state === 'idle' && fetcher.data?.fetchedGames) {
+      console.log(fetcher.data);
+      setInfiniteScroll((prevState) => [...prevState, ...fetcher.data?.fetchedGames]);
+    }
+  }, [fetcher.data?.fetchedGames]);
 
   return (
     <div>
-      <Form method='get' id='search-form' role='search'>
+      <fetcher.Form method='get' id='search-form' role='search'>
         <div className='grid p-fluid'>
           <h1>Search Page</h1>
           <div className='col-12 md:col-4'>
@@ -358,8 +424,29 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
             />
           </div>
         </div>
-      </Form>
-      <GameList items={fetchedGames} />
+      </fetcher.Form>
+      <GameList items={infiniteScroll} elementRef={elementRef} />
+
+      <div
+        className='outerbox'
+        style={{
+          border: '1px solid red',
+          overflowY: 'scroll',
+          height: windowHeight,
+          width: 300,
+          margin: '0 auto',
+        }}
+        onScroll={onScroll}>
+        <div
+          className='innerbox'
+          style={{
+            position: 'relative',
+            height: innerHeight,
+          }}>
+          {displayMovieItems()}
+        </div>
+      </div>
+
       <Paginator
         first={currentPage ? itemsPerPage * (currentPage - 1) : 0}
         rows={itemsPerPage}

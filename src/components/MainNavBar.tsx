@@ -112,6 +112,7 @@ export default function MainNavBar() {
           label: t('account', { ns: 'common' }),
           icon: PrimeIcons.BOOKMARK,
           visible: state?.user ? true : false,
+          command: () => navigate('/profile'),
         },
         {
           label: t('wishlist', { ns: 'common' }),

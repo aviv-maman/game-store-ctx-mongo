@@ -11,9 +11,10 @@ import { useNavigate } from 'react-router-dom';
 type ProductCardProps = {
   item: Game;
   handleDelete: (id: string) => void;
+  elementRef?: any;
 };
 
-const ProductCard: FC<ProductCardProps> = ({ item, handleDelete }) => {
+const ProductCard: FC<ProductCardProps> = ({ item, handleDelete, elementRef }) => {
   const [showMore, setShowMore] = useState<boolean>(false);
   const toggleShowMore = (): void => setShowMore(!showMore);
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const ProductCard: FC<ProductCardProps> = ({ item, handleDelete }) => {
   const preferred_currency = user?.preferred_currency ?? 'usd';
 
   return (
-    <li className='ticket'>
+    <li className='ticket' ref={elementRef}>
       <div className='styledHeader'>
         <span className='hiddenStyledButton'>Hide</span>
       </div>

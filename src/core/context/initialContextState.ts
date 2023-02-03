@@ -13,6 +13,7 @@ export type User = {
   weight: number;
   photoURL: string;
   uid: string;
+  isEmailVerified: boolean;
 } | null;
 
 export const initialContextState = {
