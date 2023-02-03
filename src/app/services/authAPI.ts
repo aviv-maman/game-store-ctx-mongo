@@ -48,6 +48,11 @@ export type VerifyEmail = {
   message: string;
 };
 
+export type SendNewEmail = {
+  currentEmail: string;
+  newEmail: string;
+};
+
 export type FirebaseAuthAPI = {
   signUp: (formData: SignUpForm) => Promise<{ message: string; user: User }> | any;
   logOut: () => { message: string } | any;
@@ -57,6 +62,8 @@ export type FirebaseAuthAPI = {
   getMe: () => Promise<{ message: string; user: User }> | any;
   sendVerificationEmail: (email: string) => Promise<{ success: boolean; message: string }> | any;
   verifyEmail: (verificationToken: string) => Promise<{ success: boolean; message: string }> | any;
+  sendNewEmail: (formData: SendNewEmail) => Promise<{ success: boolean; message: string }> | any;
+  changeEmail: (newEmailToken: string) => Promise<{ success: boolean; message: string }> | any;
 };
 
 export const authAPI = (): FirebaseAuthAPI => {
@@ -189,6 +196,36 @@ export const authAPI = (): FirebaseAuthAPI => {
         } else {
           console.log('There was a problem verifying the email.');
           throw error;
+        }
+      }
+      return () => controller.abort();
+    },
+    sendNewEmail: async (formData) => {
+      const controller = new AbortController();
+      try {
+        const response = await axios.post('http://localhost:8000/api/v1/users/send-new-email', formData, { withCredentials: true });
+        return response.data;
+      } catch (error: any) {
+        if (controller.signal.aborted) {
+          console.log('The request was cancelled:', controller.signal.reason);
+        } else {
+          console.log('There was a problem with sending the email.');
+          throw error;
+        }
+      }
+      return () => controller.abort();
+    },
+    changeEmail: async (newEmailToken) => {
+      const controller = new AbortController();
+      try {
+        const response = await axios.patch(`http://localhost:8000/api/v1/users/new-email/${newEmailToken}`, { withCredentials: true });
+        return response.data;
+      } catch (error: any) {
+        if (controller.signal.aborted) {
+          console.log('The request was cancelled:', controller.signal.reason);
+        } else {
+          console.log('There was a problem changing the email.');
+          return { ...error, success: false };
         }
       }
       return () => controller.abort();
