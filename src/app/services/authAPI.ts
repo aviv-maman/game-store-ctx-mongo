@@ -51,6 +51,13 @@ export type VerifyEmail = {
 export type SendNewEmail = {
   currentEmail: string;
   newEmail: string;
+  password: string;
+};
+
+export type ChangePassword = {
+  currentPassword: string;
+  newPassword: string;
+  newPasswordConfirm: string;
 };
 
 export type FirebaseAuthAPI = {
@@ -64,6 +71,7 @@ export type FirebaseAuthAPI = {
   verifyEmail: (verificationToken: string) => Promise<{ success: boolean; message: string }> | any;
   sendNewEmail: (formData: SendNewEmail) => Promise<{ success: boolean; message: string }> | any;
   changeEmail: (newEmailToken: string) => Promise<{ success: boolean; message: string }> | any;
+  changePassword: (formData: ChangePassword) => Promise<{ success: boolean; message: string }> | any;
 };
 
 export const authAPI = (): FirebaseAuthAPI => {
@@ -225,6 +233,21 @@ export const authAPI = (): FirebaseAuthAPI => {
           console.log('The request was cancelled:', controller.signal.reason);
         } else {
           console.log('There was a problem changing the email.');
+          return { ...error, success: false };
+        }
+      }
+      return () => controller.abort();
+    },
+    changePassword: async (formData) => {
+      const controller = new AbortController();
+      try {
+        const response = await axios.patch(`http://localhost:8000/api/v1/users/updateMyPassword`, formData, { withCredentials: true });
+        return response.data;
+      } catch (error: any) {
+        if (controller.signal.aborted) {
+          console.log('The request was cancelled:', controller.signal.reason);
+        } else {
+          console.log('There was a problem changing the password.');
           return { ...error, success: false };
         }
       }

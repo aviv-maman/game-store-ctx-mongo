@@ -13,22 +13,10 @@ import { useGlobalContext } from '../core/context/initialContextState';
 import { Button } from 'primereact/button';
 import { PrimeIcons } from 'primereact/api';
 import { InputText } from 'primereact/inputtext';
-import { log } from 'console';
+import { Password } from 'primereact/password';
 
 //API calls
 const api = authAPI();
-
-export async function changeEmailLoader({ request, params }: ActionFunctionArgs) {
-  const newEmailToken = params.newEmailToken as string;
-  try {
-    const res = await api.changeEmail(newEmailToken);
-    console.log(res);
-    return res;
-  } catch (error: any) {
-    console.error(error);
-    return error;
-  }
-}
 
 export default function ProfilePage() {
   const { state } = useGlobalContext();
@@ -40,24 +28,14 @@ export default function ProfilePage() {
   const navigation = useNavigation();
   const fetcher = useFetcher();
 
-  const [initDisabled, setInitDisabled] = useState(true);
-
-  const toggleInitDisabled = () => {
-    setInitDisabled(!initDisabled);
+  const [initDisabled, setInitDisabled] = useState({ email: true, password: true });
+  const toggleDisabled = (name: 'email' | 'password') => {
+    setInitDisabled((prevState) => ({ ...prevState, [name]: !initDisabled[name] }));
   };
 
   const location = useLocation();
   const submit = useSubmit();
   const res = useLoaderData() as any;
-
-  useEffect(() => {
-    if (location.pathname.startsWith('/profile/new-email/')) {
-      console.log(location.pathname.startsWith('/profile/new-email/'));
-      console.log(res?.success);
-      // submit(null, {});
-    }
-    navigate('/profile');
-  }, []);
 
   return (
     <div>
@@ -71,30 +49,76 @@ export default function ProfilePage() {
           disabled={fetcher.state !== 'idle' || navigation.state !== 'idle' || state.user?.isEmailVerified}
         />
       </fetcher.Form>
-      <fetcher.Form method='post' action='send-new-email'>
-        <label>
-          <span>Email</span>
-          <InputText id='email' name='newEmail' type='email' defaultValue={state.user?.email} disabled={initDisabled} />
-        </label>
-        {initDisabled ? (
-          <Button type='button' label='Change' disabled={fetcher.state !== 'idle' || navigation.state !== 'idle'} onClick={toggleInitDisabled} />
-        ) : (
-          <>
-            <Button
-              type='submit'
-              label='Confirm'
-              name='currentEmail'
-              value={state.user?.email}
-              disabled={fetcher.state !== 'idle' || navigation.state !== 'idle'}
-            />
-            <Button type='button' label='Cancel' disabled={fetcher.state !== 'idle' || navigation.state !== 'idle'} onClick={toggleInitDisabled} />
+      <h3>Login Details</h3>
+      <div>
+        <fetcher.Form method='post' action='send-new-email'>
+          <label>
+            <h4>Email</h4>
+            <InputText id='email' name='newEmail' type='email' defaultValue={state.user?.email} disabled={initDisabled.email} />
+          </label>
+          {!initDisabled.email && (
+            <>
+              <span className='p-float-label'>
+                <InputText id='password' name='password' type='password' />
+                <label htmlFor='password'>Enter Password</label>
+              </span>
+              <Button
+                type='submit'
+                label='Confirm'
+                name='currentEmail'
+                value={state.user?.email}
+                disabled={fetcher.state !== 'idle' || navigation.state !== 'idle'}
+              />
+            </>
+          )}
+          <Button
+            type='button'
+            label={initDisabled.email ? 'Change Email' : 'Cancel'}
+            disabled={fetcher.state !== 'idle' || navigation.state !== 'idle'}
+            onClick={() => toggleDisabled('email')}
+          />
+          {!initDisabled.email && <p>After clicking on confirm, an email will be sent to your current email to confirm the change</p>}
+        </fetcher.Form>
+      </div>
+      <div>
+        <fetcher.Form method='post' action='change-password'>
+          <h4>Password</h4>
+          {initDisabled.password ? (
+            <Password inputId='password' disabled value='********' readOnly />
+          ) : (
+            <>
+              <span className='p-float-label'>
+                <Password name='currentPassword' inputId='currentPassword' feedback={false} />
+                <label htmlFor='currentPassword'>Current Password</label>
+              </span>
+              <span className='p-float-label'>
+                <Password name='newPassword' inputId='newPassword' />
+                <label htmlFor='newPassword'>New Password</label>
+              </span>
+              <span className='p-float-label'>
+                <Password name='newPasswordConfirm' inputId='newPasswordConfirm' feedback={false} />
+                <label htmlFor='newPasswordConfirm'>New Password Confirmation</label>
+              </span>
+              <Button type='submit' label='Confirm' disabled={fetcher.state !== 'idle' || navigation.state !== 'idle'} />
+            </>
+          )}
+          <Button
+            type='button'
+            label={initDisabled.password ? 'Change Password' : 'Cancel'}
+            onClick={() => toggleDisabled('password')}
+            disabled={fetcher.state !== 'idle' || navigation.state !== 'idle'}
+          />
+        </fetcher.Form>
+        <div>
+          <h3>Personal Details</h3>
+          <fetcher.Form method='post' action='update-profile'>
             <label>
-              <span>Enter Your Password</span>
-              <InputText id='password' name='password' type='password' />
+              <h4>Name</h4>
+              <InputText id='name' name='name' type='text' defaultValue={state.user?.firstName.concat(' ', state.user?.lastName)} />
             </label>
-          </>
-        )}
-      </fetcher.Form>
+          </fetcher.Form>
+        </div>
+      </div>
       {location.pathname.startsWith('/profile/new-email/') && <p>{res?.success ? 'true' : 'false'}</p>}
       {fetcher.state !== 'idle' && <p>{'fetcher.state loading'}</p>}
       {fetcher.state === 'idle' && fetcher.data?.code && <p>{fetcher.data?.code}</p>}

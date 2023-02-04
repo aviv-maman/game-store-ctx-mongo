@@ -15,17 +15,6 @@ import { PrimeIcons } from 'primereact/api';
 //API calls
 const api = authAPI();
 
-export async function verifyAction({ request, params }: ActionFunctionArgs) {
-  const verificationToken = params.verificationToken as string;
-  try {
-    const res = await api.verifyEmail(verificationToken);
-    return res;
-  } catch (error: any) {
-    console.error(error);
-    return error;
-  }
-}
-
 export default function EmailVerificationPage() {
   const { state } = useGlobalContext();
   const { dispatch } = useGlobalContext();

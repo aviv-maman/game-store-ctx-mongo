@@ -15,7 +15,13 @@ import SearchPage, { searchLoader } from './pages/SearchPage';
 import AddProductPage, { addProductAction } from './pages/AddProductPage';
 import EditProductPage, { editProductAction, editProductLoader } from './pages/EditProductPage';
 
-import { changeEmailAction, sendNewEmailAction, sendVerificationAction } from './pages/VerifyEmail';
+import {
+  changeEmailLoader,
+  changePasswordAction,
+  sendNewEmailAction,
+  sendVerificationAction,
+  verifyEmailLoader,
+} from './pages/ProfileActionsAndLoaders';
 //CSS
 import 'primereact/resources/themes/lara-light-indigo/theme.css'; //theme
 import 'primereact/resources/primereact.min.css'; //core css
@@ -23,8 +29,8 @@ import 'primeicons/primeicons.css'; //icons
 //Init
 import { useAuth } from './hooks/useAuth';
 import SearchPageWithInfiniteScrolling, { searchWithInfiniteScrollingLoader } from './pages/SearchPageWithInfiniteScrolling';
-import ProfilePage, { changeEmailLoader } from './pages/ProfilePage';
-import EmailVerificationPage, { verifyAction } from './pages/EmailVerificationPage';
+import ProfilePage from './pages/ProfilePage';
+import EmailVerificationPage from './pages/EmailVerificationPage';
 
 function App() {
   const router = createBrowserRouter(
@@ -101,24 +107,24 @@ function App() {
                 <ProfilePage />
               </AuthorizedRoute>
             }
-            // loader={addProductLoader}
+            // loader={profileLoader}
             errorElement={<div>Oops! ErrorElement Line 105</div>}
           />
-          <Route path='profile/send-verification-email' action={sendVerificationAction} errorElement={<div>Oops! ErrorElement Line 106</div>} />
+          <Route path='profile/send-verification-email' action={sendVerificationAction} errorElement={<div>Oops! ErrorElement Line 107</div>} />
           <Route
             path='profile/verify-email/:verificationToken'
             element={<EmailVerificationPage />}
-            action={verifyAction}
-            errorElement={<div>Oops! ErrorElement Line 107</div>}
+            loader={verifyEmailLoader}
+            errorElement={<div>Oops! ErrorElement Line 112</div>}
           />
           <Route path='profile/send-new-email' action={sendNewEmailAction} errorElement={<div>Oops! ErrorElement Line 114</div>} />
           <Route
             path='profile/new-email/:newEmailToken'
             element={<ProfilePage />}
             loader={changeEmailLoader}
-            // action={changeEmailAction}
-            errorElement={<div>Oops! ErrorElement Line 115</div>}
+            errorElement={<div>Oops! ErrorElement Line 119</div>}
           />
+          <Route path='profile/change-password' action={changePasswordAction} errorElement={<div>Oops! ErrorElement Line 121</div>} />
           <Route path='*' element={<ErrorPage status={404} />} />
         </Route>
       </Route>
