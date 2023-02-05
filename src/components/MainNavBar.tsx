@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { authAPI } from '../app/services/authAPI';
 //Core
 import { languages } from '../core/languages';
-import { useGlobalContext } from '../core/context/initialContextState';
+import { Theme, useGlobalContext } from '../core/context/initialContextState';
 import { GlobalActionKeys } from '../core/context/action';
 //PrimeReact
 import { Menubar } from 'primereact/menubar';
@@ -37,7 +37,11 @@ export default function MainNavBar() {
   };
 
   const toggleMode = () => {
-    dispatch({ type: GlobalActionKeys.UpdateTheme, payload: state.siteTheme === 'dark' ? 'light' : 'dark' });
+    if (state.user) {
+      dispatch({ type: GlobalActionKeys.UpdateTheme, payload: state.user.siteTheme === Theme.dark ? Theme.light : Theme.dark });
+    } else {
+      dispatch({ type: GlobalActionKeys.UpdateTheme, payload: state.siteTheme === Theme.dark ? Theme.light : Theme.dark });
+    }
   };
 
   const handleChangeLanguage = (event: any) => {
@@ -161,7 +165,21 @@ export default function MainNavBar() {
     <Menubar
       model={items}
       start={<InputText placeholder='Search' type='text' />}
-      end={<Button label='' icon={state.siteTheme === 'dark' ? PrimeIcons.SUN : PrimeIcons.MOON} onClick={toggleMode} />}
+      end={
+        <Button
+          label=''
+          icon={
+            state.user
+              ? state.user?.siteTheme === Theme.dark
+                ? PrimeIcons.SUN
+                : PrimeIcons.MOON
+              : state.siteTheme === Theme.dark
+              ? PrimeIcons.SUN
+              : PrimeIcons.MOON
+          }
+          onClick={toggleMode}
+        />
+      }
     />
   );
 }

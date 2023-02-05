@@ -69,3 +69,17 @@ export async function changePasswordAction({ request, params }: ActionFunctionAr
     return error;
   }
 }
+
+export async function updateProfileAction({ request, params }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const updates = Object.fromEntries(formData);
+  console.log(updates);
+  try {
+    // const res = await api.changePassword(locale);
+    // return res;
+    return { updates, success: true };
+  } catch (error: any) {
+    console.error(error);
+    return error;
+  }
+}

@@ -1,4 +1,4 @@
-import type { User } from './initialContextState';
+import type { Currency, Theme, User } from './initialContextState';
 import type { Language } from '../languages';
 
 type ActionMap<M extends { [index: string]: any }> = {
@@ -16,13 +16,15 @@ export enum GlobalActionKeys {
   UpdateIsAuthenticated = 'UPDATE_ISAUTHENTICATED',
   UpdateUser = 'UPDATE_USER',
   UpdateLanguage = 'UPDATE_LANGUAGE',
+  UpdateCurrency = 'UPDATE_CURRENCY',
 }
 
 type GlobalPayload = {
-  [GlobalActionKeys.UpdateTheme]: 'dark' | 'light';
+  [GlobalActionKeys.UpdateTheme]: Theme;
   [GlobalActionKeys.UpdateIsAuthenticated]: boolean;
   [GlobalActionKeys.UpdateUser]: User | null;
   [GlobalActionKeys.UpdateLanguage]: Language;
+  [GlobalActionKeys.UpdateCurrency]: Currency;
 };
 
 export type GlobalActionMap = ActionMap<GlobalPayload>[keyof ActionMap<GlobalPayload>];

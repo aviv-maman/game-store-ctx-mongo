@@ -1,19 +1,20 @@
 //React
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 //React-Router-DOM
-import { Form, useActionData, useFetcher, useLoaderData, useLocation, useNavigate, useNavigation, useSubmit } from 'react-router-dom';
-import type { ActionFunctionArgs } from 'react-router-dom';
+import { useFetcher, useLoaderData, useLocation, useNavigation } from 'react-router-dom';
 //Services
 import { authAPI } from '../app/services/authAPI';
-import type { SendVerificationEmail } from '../app/services/authAPI';
 //Context
 import { GlobalActionKeys } from '../core/context/action';
-import { useGlobalContext } from '../core/context/initialContextState';
+import { Currency, Theme, useGlobalContext } from '../core/context/initialContextState';
 //PrimeReact
 import { Button } from 'primereact/button';
-import { PrimeIcons } from 'primereact/api';
 import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
+import { Avatar } from 'primereact/avatar';
+import { Dropdown } from 'primereact/dropdown';
+import { languages } from '../core/languages';
+import { Calendar } from 'primereact/calendar';
 
 //API calls
 const api = authAPI();
@@ -21,10 +22,8 @@ const api = authAPI();
 export default function ProfilePage() {
   const { state } = useGlobalContext();
   const { dispatch } = useGlobalContext();
-  const navigate = useNavigate();
 
   //React-Router-DOM & Context
-  const verifyActionData = useActionData() as SendVerificationEmail;
   const navigation = useNavigation();
   const fetcher = useFetcher();
 
@@ -34,8 +33,9 @@ export default function ProfilePage() {
   };
 
   const location = useLocation();
-  const submit = useSubmit();
   const res = useLoaderData() as any;
+
+  const [selectedLanguage, setSelectedLanguage] = useState(state.language ?? languages[0]);
 
   return (
     <div>
@@ -109,13 +109,79 @@ export default function ProfilePage() {
             disabled={fetcher.state !== 'idle' || navigation.state !== 'idle'}
           />
         </fetcher.Form>
+
         <div>
-          <h3>Personal Details</h3>
           <fetcher.Form method='post' action='update-profile'>
-            <label>
-              <h4>Name</h4>
-              <InputText id='name' name='name' type='text' defaultValue={state.user?.firstName.concat(' ', state.user?.lastName)} />
-            </label>
+            <div>
+              <h3>Personal Details</h3>
+              <div>
+                <Avatar image='user.png' icon='pi pi-user' size='xlarge' />
+                <h5>{state.user?.firstName.concat(' ', state.user?.lastName)}</h5>
+              </div>
+              <label>
+                <h4>First Name</h4>
+                <InputText id='firstName' name='firstName' type='text' defaultValue={state.user?.firstName} />
+              </label>
+              <label>
+                <h4>Last Name</h4>
+                <InputText id='lastName' name='lastName' type='text' defaultValue={state.user?.lastName} />
+              </label>
+              <label>
+                <h4>Date of Birth</h4>
+                <Calendar
+                  id='dateOfBirth'
+                  name='dateOfBirth'
+                  dateFormat='dd/mm/yy'
+                  maxDate={new Date('01-01-2023')}
+                  value={state.user?.dateOfBirth}
+                  showIcon
+                />
+              </label>
+            </div>
+            <div>
+              <h3>Website Settings</h3>
+              <label>
+                <h4>Language</h4>
+                <Dropdown
+                  id='locale-dropdown'
+                  value={selectedLanguage}
+                  options={Array.from(Object.values(languages))}
+                  onChange={(e) => setSelectedLanguage(e.value)}
+                  optionLabel='nativeLabel'
+                  filter
+                  filterBy='nativeLabel'
+                  placeholder='Select a Language'
+                  // valueTemplate={selectedCountryTemplate}
+                  // itemTemplate={countryOptionTemplate}
+                />
+                <InputText id='locale' name='locale' type='text' value={selectedLanguage.code} className='p-hidden' />
+              </label>
+              <label>
+                <h4>Currency</h4>
+                <Dropdown
+                  id='currency-dropdown'
+                  value={state.user?.currency ?? Currency.usd}
+                  options={Object.values(Currency)}
+                  onChange={(e) => dispatch({ type: GlobalActionKeys.UpdateCurrency, payload: e.value })}
+                  placeholder='Select a Currency'
+                  // valueTemplate={selectedCountryTemplate}
+                  // itemTemplate={countryOptionTemplate}
+                />
+                <InputText id='currency' name='currency' type='text' value={state.user?.currency} className='p-hidden' />
+              </label>
+              <label>
+                <h4>Theme</h4>
+                <Dropdown
+                  id='theme-dropdown'
+                  value={state.user?.siteTheme ?? Theme.dark}
+                  options={Object.values(Theme)}
+                  onChange={(e) => dispatch({ type: GlobalActionKeys.UpdateTheme, payload: e.value })}
+                  placeholder='Select a Theme'
+                />
+                <InputText id='siteTheme' name='siteTheme' type='text' value={state.user?.siteTheme} className='p-hidden' />
+              </label>
+            </div>
+            <Button type='submit' label='Save' disabled={fetcher.state !== 'idle' || navigation.state !== 'idle'} />
           </fetcher.Form>
         </div>
       </div>

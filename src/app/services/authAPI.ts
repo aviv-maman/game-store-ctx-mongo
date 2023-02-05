@@ -111,7 +111,7 @@ export const authAPI = (): FirebaseAuthAPI => {
       const controller = new AbortController();
       try {
         const userCredential = await axios.post('http://localhost:8000/api/v1/users/login', formData, { withCredentials: true });
-        return { message: 'A user was successfully logged in.', user: userCredential.data };
+        return { message: 'A user was successfully logged in.', user: userCredential.data.user };
       } catch (error: any) {
         if (controller.signal.aborted) {
           console.log('The request was cancelled:', controller.signal.reason);

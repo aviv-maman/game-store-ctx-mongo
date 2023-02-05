@@ -20,6 +20,7 @@ import {
   changePasswordAction,
   sendNewEmailAction,
   sendVerificationAction,
+  updateProfileAction,
   verifyEmailLoader,
 } from './pages/ProfileActionsAndLoaders';
 //CSS
@@ -31,6 +32,7 @@ import { useAuth } from './hooks/useAuth';
 import SearchPageWithInfiniteScrolling, { searchWithInfiniteScrollingLoader } from './pages/SearchPageWithInfiniteScrolling';
 import ProfilePage from './pages/ProfilePage';
 import EmailVerificationPage from './pages/EmailVerificationPage';
+import LoginPageWithGForm from './pages/LoginPageWithGForm';
 
 function App() {
   const router = createBrowserRouter(
@@ -55,6 +57,15 @@ function App() {
               </AuthorizedRoute>
             }
             action={loginAction}
+            // errorElement={<div>Oops! Login error. Line 33</div>}
+          />
+          <Route
+            path='login-gform'
+            element={
+              <AuthorizedRoute requireGuest>
+                <LoginPageWithGForm />
+              </AuthorizedRoute>
+            }
             // errorElement={<div>Oops! Login error. Line 33</div>}
           />
           <Route
@@ -98,7 +109,7 @@ function App() {
             }
             // loader={addProductLoader}
             action={addProductAction}
-            errorElement={<div>Oops! ErrorElement Line 94</div>}
+            errorElement={<div>Oops! ErrorElement Line 102</div>}
           />
           <Route
             path='profile'
@@ -108,23 +119,24 @@ function App() {
               </AuthorizedRoute>
             }
             // loader={profileLoader}
-            errorElement={<div>Oops! ErrorElement Line 105</div>}
+            errorElement={<div>Oops! ErrorElement Line 112</div>}
           />
-          <Route path='profile/send-verification-email' action={sendVerificationAction} errorElement={<div>Oops! ErrorElement Line 107</div>} />
+          <Route path='profile/send-verification-email' action={sendVerificationAction} errorElement={<div>Oops! ErrorElement Line 114</div>} />
           <Route
             path='profile/verify-email/:verificationToken'
             element={<EmailVerificationPage />}
             loader={verifyEmailLoader}
-            errorElement={<div>Oops! ErrorElement Line 112</div>}
+            errorElement={<div>Oops! ErrorElement Line 119</div>}
           />
-          <Route path='profile/send-new-email' action={sendNewEmailAction} errorElement={<div>Oops! ErrorElement Line 114</div>} />
+          <Route path='profile/send-new-email' action={sendNewEmailAction} errorElement={<div>Oops! ErrorElement Line 121</div>} />
           <Route
             path='profile/new-email/:newEmailToken'
             element={<ProfilePage />}
             loader={changeEmailLoader}
-            errorElement={<div>Oops! ErrorElement Line 119</div>}
+            errorElement={<div>Oops! ErrorElement Line 126</div>}
           />
-          <Route path='profile/change-password' action={changePasswordAction} errorElement={<div>Oops! ErrorElement Line 121</div>} />
+          <Route path='profile/change-password' action={changePasswordAction} errorElement={<div>Oops! ErrorElement Line 128</div>} />
+          <Route path='profile/update-profile' action={updateProfileAction} errorElement={<div>Oops! ErrorElement Line 129</div>} />
           <Route path='*' element={<ErrorPage status={404} />} />
         </Route>
       </Route>
