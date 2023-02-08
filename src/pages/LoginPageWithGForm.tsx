@@ -29,11 +29,11 @@ export default function LoginPageWithGForm() {
   const location = useLocation();
   const from = location.state?.from?.pathname || '/';
 
-  async function loginAction(formState: GFormState<LoginForm>) {
+  async function loginAction(formState: GFormState<IForm<LoginForm>>) {
     const formData = formState.toFormData();
-    const updates = Object.fromEntries(formData) as LogInForm;
+    const updates = Object.fromEntries(formData);
     try {
-      const { user, message } = await api.logIn(updates);
+      const { user, message } = await api.logIn(updates as LogInForm);
       dispatch({ type: GlobalActionKeys.UpdateUser, payload: user });
       navigate(from, { replace: true });
       return user;

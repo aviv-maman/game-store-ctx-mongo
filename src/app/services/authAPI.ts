@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { User } from '../../core/context/initialContextState';
+import type { Currency, Theme, User } from '../../core/context/initialContextState';
 
 export type ServerResponse = {
   message?: string;
@@ -60,6 +60,19 @@ export type ChangePassword = {
   newPasswordConfirm: string;
 };
 
+export type UpdateProfile = {
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  dateOfBirth?: Date;
+  height?: number;
+  weight?: number;
+  photo?: string;
+  siteTheme?: Theme;
+  currency?: Currency;
+  locale?: string;
+};
+
 export type FirebaseAuthAPI = {
   signUp: (formData: SignUpForm) => Promise<{ message: string; user: User }> | any;
   logOut: () => { message: string } | any;
@@ -72,6 +85,7 @@ export type FirebaseAuthAPI = {
   sendNewEmail: (formData: SendNewEmail) => Promise<{ success: boolean; message: string }> | any;
   changeEmail: (newEmailToken: string) => Promise<{ success: boolean; message: string }> | any;
   changePassword: (formData: ChangePassword) => Promise<{ success: boolean; message: string }> | any;
+  updateProfile: (formData: UpdateProfile) => Promise<{ success: boolean; message: string }> | any;
 };
 
 export const authAPI = (): FirebaseAuthAPI => {
@@ -107,7 +121,7 @@ export const authAPI = (): FirebaseAuthAPI => {
       }
       return () => controller.abort();
     },
-    logIn: async (formData: LogInForm) => {
+    logIn: async (formData) => {
       const controller = new AbortController();
       try {
         const userCredential = await axios.post('http://localhost:8000/api/v1/users/login', formData, { withCredentials: true });
@@ -242,6 +256,21 @@ export const authAPI = (): FirebaseAuthAPI => {
       const controller = new AbortController();
       try {
         const response = await axios.patch(`http://localhost:8000/api/v1/users/updateMyPassword`, formData, { withCredentials: true });
+        return response.data;
+      } catch (error: any) {
+        if (controller.signal.aborted) {
+          console.log('The request was cancelled:', controller.signal.reason);
+        } else {
+          console.log('There was a problem changing the password.');
+          return { ...error, success: false };
+        }
+      }
+      return () => controller.abort();
+    },
+    updateProfile: async (formData) => {
+      const controller = new AbortController();
+      try {
+        const response = await axios.patch(`http://localhost:8000/api/v1/users/updateMe`, formData, { withCredentials: true });
         return response.data;
       } catch (error: any) {
         if (controller.signal.aborted) {

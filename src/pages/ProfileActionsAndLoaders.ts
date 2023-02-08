@@ -4,6 +4,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router-dom';
 import { authAPI, ChangePassword } from '../app/services/authAPI';
 //Types
 import type { SendNewEmail } from '../app/services/authAPI';
+//Helpers
+import { prepareDateToMongoDB } from '../app/helpers/prepareDateMongoDB';
 
 //API calls
 const api = authAPI();
@@ -73,11 +75,12 @@ export async function changePasswordAction({ request, params }: ActionFunctionAr
 export async function updateProfileAction({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData();
   const updates = Object.fromEntries(formData);
-  console.log(updates);
+  const formattedDateOfBirth = prepareDateToMongoDB(updates.dateOfBirth as string);
+  updates.dateOfBirth = formattedDateOfBirth;
   try {
-    // const res = await api.changePassword(locale);
-    // return res;
-    return { updates, success: true };
+    const res = await api.updateProfile(updates);
+    return res;
+    // return { updates, success: true };
   } catch (error: any) {
     console.error(error);
     return error;

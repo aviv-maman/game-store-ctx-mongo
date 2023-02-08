@@ -1,5 +1,5 @@
 //React
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 //React-Router-DOM
 import { useFetcher, useLoaderData, useLocation, useNavigation } from 'react-router-dom';
 //Services
@@ -15,6 +15,8 @@ import { Avatar } from 'primereact/avatar';
 import { Dropdown } from 'primereact/dropdown';
 import { languages } from '../core/languages';
 import { Calendar } from 'primereact/calendar';
+import { FileUpload } from 'primereact/fileupload';
+import { Toast } from 'primereact/toast';
 
 //API calls
 const api = authAPI();
@@ -26,19 +28,32 @@ export default function ProfilePage() {
   //React-Router-DOM & Context
   const navigation = useNavigation();
   const fetcher = useFetcher();
+  // const actionData = useActionData() as { user: any; success: boolean; error: any };
 
   const [initDisabled, setInitDisabled] = useState({ email: true, password: true });
   const toggleDisabled = (name: 'email' | 'password') => {
     setInitDisabled((prevState) => ({ ...prevState, [name]: !initDisabled[name] }));
   };
 
+  useEffect(() => {
+    if (fetcher.data?.user && fetcher.data?.success && fetcher.state === 'idle') {
+      dispatch({ type: GlobalActionKeys.UpdateUser, payload: fetcher.data.user });
+    }
+  }, [fetcher, dispatch]);
+
   const location = useLocation();
   const res = useLoaderData() as any;
 
   const [selectedLanguage, setSelectedLanguage] = useState(state.language ?? languages[0]);
 
+  const toast: any = useRef(null);
+  const onBasicUpload = () => {
+    toast?.current?.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded with Basic Mode' });
+  };
+
   return (
     <div>
+      <Toast ref={toast} />
       <h2>Profile</h2>
       <fetcher.Form method='post' action='send-verification-email'>
         <Button
@@ -117,6 +132,14 @@ export default function ProfilePage() {
               <div>
                 <Avatar image='user.png' icon='pi pi-user' size='xlarge' />
                 <h5>{state.user?.firstName.concat(' ', state.user?.lastName)}</h5>
+                <FileUpload
+                  mode='basic'
+                  name='demo[]'
+                  url='https://primefaces.org/primereact/showcase/upload.php'
+                  accept='image/*'
+                  maxFileSize={1000000}
+                  onUpload={onBasicUpload}
+                />
               </div>
               <label>
                 <h4>First Name</h4>
@@ -127,13 +150,18 @@ export default function ProfilePage() {
                 <InputText id='lastName' name='lastName' type='text' defaultValue={state.user?.lastName} />
               </label>
               <label>
+                <h4>Phone Number</h4>
+                <InputText id='phoneNumber' name='phoneNumber' type='text' defaultValue={state.user?.phoneNumber} />
+              </label>
+              <label>
                 <h4>Date of Birth</h4>
                 <Calendar
                   id='dateOfBirth'
                   name='dateOfBirth'
                   dateFormat='dd/mm/yy'
-                  maxDate={new Date('01-01-2023')}
-                  value={state.user?.dateOfBirth}
+                  minDate={new Date(`01-01-${new Date(Date.now()).getFullYear() - 100}`)}
+                  maxDate={new Date(`01-01-${new Date(Date.now()).getFullYear()}`)}
+                  value={new Date(state.user?.dateOfBirth ?? '')}
                   showIcon
                 />
               </label>
