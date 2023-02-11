@@ -20,12 +20,13 @@ export async function loginAction({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData();
   const updates = Object.fromEntries(formData) as LogInForm; //To get a single field: const firstName = formData.get("first");
   try {
-    const { user, message } = await api.logIn(updates);
-    return user;
+    const actionData = await api.logIn(updates);
+    return actionData;
     // return redirect(`/`); can be done like this, but a better advanced option is in the useEffect
   } catch (error: any) {
     console.error(error);
-    return { code: error.code, message: error.message };
+    const errorData = { code: error.code, message: error.message };
+    return errorData;
   }
 }
 
@@ -43,7 +44,7 @@ export default function LoginPage() {
   const navigation = useNavigation(); //navigation.state === 'loading', 'submitting', 'idle'
 
   useEffect(() => {
-    if (actionData && actionData.user) {
+    if (actionData?.success && actionData?.user) {
       dispatch({ type: GlobalActionKeys.UpdateUser, payload: actionData.user });
       // Send them back to the page they tried to visit when they were
       // redirected to the login page. Use { replace: true } so we don't create
@@ -92,8 +93,7 @@ export default function LoginPage() {
         </Button>
       </Form>
       {navigation.state !== 'idle' && <p>{'navigation.state loading'}</p>}
-      {navigation.state === 'idle' && actionData?.code && <p>{actionData.code}</p>}
-      {navigation.state === 'idle' && actionData?.message && <p>{actionData.message}</p>}
+      {navigation.state === 'idle' && actionData?.success && <p>login successful</p>}
     </div>
   );
 }

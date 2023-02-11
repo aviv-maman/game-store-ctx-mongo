@@ -77,6 +77,7 @@ export async function updateProfileAction({ request, params }: ActionFunctionArg
   const updates = Object.fromEntries(formData);
   const formattedDateOfBirth = prepareDateToMongoDB(updates.dateOfBirth as string);
   updates.dateOfBirth = formattedDateOfBirth;
+  console.log(updates);
   try {
     const res = await api.updateProfile(updates);
     return res;
@@ -86,3 +87,21 @@ export async function updateProfileAction({ request, params }: ActionFunctionArg
     return error;
   }
 }
+
+export const customBase64Uploader = async (event: React.ChangeEvent<HTMLInputElement> | any) => {
+  // convert file to base64 encoded
+  const file = event.files[0];
+  const reader = new FileReader();
+  let blob = await fetch(file.objectURL).then((r) => r.blob()); //blob:url
+  reader.readAsDataURL(blob);
+  reader.onloadend = async function () {
+    const base64data = reader.result as string;
+    try {
+      const res = await api.updateProfile({ photo: base64data });
+      return res;
+    } catch (error: any) {
+      console.error(error);
+      return error;
+    }
+  };
+};

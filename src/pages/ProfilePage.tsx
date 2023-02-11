@@ -1,5 +1,5 @@
 //React
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 //React-Router-DOM
 import { useFetcher, useLoaderData, useLocation, useNavigation } from 'react-router-dom';
 //Services
@@ -16,7 +16,10 @@ import { Dropdown } from 'primereact/dropdown';
 import { languages } from '../core/languages';
 import { Calendar } from 'primereact/calendar';
 import { FileUpload } from 'primereact/fileupload';
+import type { FileUploadHandlerParam } from 'primereact/fileupload';
 import { Toast } from 'primereact/toast';
+import { convertFileToBase64 } from '../app/helpers/convertFileToBase64';
+import { customBase64Uploader } from './ProfileActionsAndLoaders';
 
 //API calls
 const api = authAPI();
@@ -28,7 +31,6 @@ export default function ProfilePage() {
   //React-Router-DOM & Context
   const navigation = useNavigation();
   const fetcher = useFetcher();
-  // const actionData = useActionData() as { user: any; success: boolean; error: any };
 
   const [initDisabled, setInitDisabled] = useState({ email: true, password: true });
   const toggleDisabled = (name: 'email' | 'password') => {
@@ -45,15 +47,27 @@ export default function ProfilePage() {
   const res = useLoaderData() as any;
 
   const [selectedLanguage, setSelectedLanguage] = useState(state.language ?? languages[0]);
+  const [fileData, setFileData] = useState(state.user?.photo ?? '');
 
-  const toast: any = useRef(null);
-  const onBasicUpload = () => {
-    toast?.current?.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded with Basic Mode' });
+  async function handleFile(event: React.ChangeEvent<HTMLInputElement> | any) {
+    const fileAsBase64 = (await convertFileToBase64(event.target.files[0])) as string;
+    setFileData(fileAsBase64);
+  }
+
+  const customUploader = async (event: FileUploadHandlerParam) => {
+    const file = event.files[0];
+    console.log('file', file);
+    // try {
+    //   const fileRes = await api.updateProfile({ photo: file });
+    //   return res;
+    // } catch (error: any) {
+    //   console.error(error);
+    //   return error;
+    // }
   };
 
   return (
     <div>
-      <Toast ref={toast} />
       <h2>Profile</h2>
       <fetcher.Form method='post' action='send-verification-email'>
         <Button
@@ -129,17 +143,30 @@ export default function ProfilePage() {
           <fetcher.Form method='post' action='update-profile'>
             <div>
               <h3>Personal Details</h3>
+              {/* <FileUpload mode='basic' name='demo' accept='image/*' customUpload uploadHandler={customBase64Uploader} /> */}
+              <FileUpload
+                mode='basic'
+                name='photo'
+                accept='image/*'
+                // uploadHandler={customUploader}
+                url='http://localhost:8000/api/v1/users/updateMe'
+                withCredentials
+                onBeforeSend={(e) => {
+                  e.xhr.open('PATCH', 'http://localhost:8000/api/v1/users/updateMe');
+                }}
+                onUpload={(e) => {
+                  const res = JSON.parse(e.xhr.response);
+                  dispatch({ type: GlobalActionKeys.UpdateUser, payload: res.user });
+                }}
+                // maxFileSize={1000000}
+                // chooseLabel='Change Image'
+                chooseOptions={{ label: 'Change Image', icon: 'pi pi-plus' }}
+              />
               <div>
-                <Avatar image='user.png' icon='pi pi-user' size='xlarge' />
+                <Avatar image={state.user?.photo} icon='pi pi-user' size='xlarge' />
                 <h5>{state.user?.firstName.concat(' ', state.user?.lastName)}</h5>
-                <FileUpload
-                  mode='basic'
-                  name='demo[]'
-                  url='https://primefaces.org/primereact/showcase/upload.php'
-                  accept='image/*'
-                  maxFileSize={1000000}
-                  onUpload={onBasicUpload}
-                />
+                {/* <input type='file' onChange={(e) => handleFile(e)} accept='image/*' />
+                <InputText id='photo' name='photo' type='text' value={fileData} className='p-hidden' /> */}
               </div>
               <label>
                 <h4>First Name</h4>

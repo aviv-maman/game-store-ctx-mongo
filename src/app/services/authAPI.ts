@@ -33,9 +33,9 @@ export type SignUpActionData = {
 };
 
 export type LogInActionData = {
-  user: User;
-  code: string;
-  message: string;
+  user?: User;
+  success?: string;
+  error?: { code?: string; message?: string };
 };
 
 export type SendVerificationEmail = {
@@ -125,7 +125,7 @@ export const authAPI = (): FirebaseAuthAPI => {
       const controller = new AbortController();
       try {
         const userCredential = await axios.post('http://localhost:8000/api/v1/users/login', formData, { withCredentials: true });
-        return { message: 'A user was successfully logged in.', user: userCredential.data.user };
+        return { user: userCredential.data.user, success: userCredential.data.success };
       } catch (error: any) {
         if (controller.signal.aborted) {
           console.log('The request was cancelled:', controller.signal.reason);
@@ -276,7 +276,7 @@ export const authAPI = (): FirebaseAuthAPI => {
         if (controller.signal.aborted) {
           console.log('The request was cancelled:', controller.signal.reason);
         } else {
-          console.log('There was a problem changing the password.');
+          console.log('There was a problem updating the profile.');
           return { ...error, success: false };
         }
       }

@@ -13,11 +13,13 @@ const container = document.getElementById('root')!;
 const root = createRoot(container);
 
 root.render(
-  <React.Suspense fallback='Loading Language...'>
-    <GlobalContextProvider>
-      <App />
-    </GlobalContextProvider>
-  </React.Suspense>
+  <React.StrictMode>
+    <React.Suspense fallback='Loading Language...'>
+      <GlobalContextProvider>
+        <App />
+      </GlobalContextProvider>
+    </React.Suspense>
+  </React.StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function
