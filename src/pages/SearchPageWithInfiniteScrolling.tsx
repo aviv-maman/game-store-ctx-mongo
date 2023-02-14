@@ -54,7 +54,6 @@ export async function searchWithInfiniteScrollingLoader({
   const order = orderBy[0] ? mongoOrderByOperator + mongoOrderByFieldPath : '-release_date';
 
   const page = Number(url.searchParams.get('page'));
-  console.log('page:', page, 'type:', type);
 
   const fromDate = url.searchParams.get('from_date') ?? '';
   const from_date = fromDate ? prepareDate(fromDate) : '';
@@ -80,6 +79,8 @@ export async function searchWithInfiniteScrollingLoader({
 
   const isMaxPrice = url.searchParams.get('max_price');
   const maxPrice = isMaxPrice ? Number(url.searchParams.get('max_price')) : undefined;
+
+  console.log(`page: ${page}, type: ${type}, release_date: ${release_date}, from_date: ${from_date}, until_date: ${until_date}, order: ${order}`);
 
   // const perPage = Number(url.searchParams.get('limit') ?? 10);
 
@@ -122,7 +123,7 @@ export async function searchWithInfiniteScrollingLoader({
       { id: Math.random() * 9999, name: `#09 of page ${page}`, price: 2, description: 'bb', developer: ['a'], publisher: ['f'], type: 'game' },
       { id: Math.random() * 9999, name: `#10 of page ${page}`, price: 2, description: 'bb', developer: ['a'], publisher: ['f'], type: 'game' },
     ] as any[],
-    totalCount: 50,
+    totalCount: 20,
     currentCount: 10,
   };
 
@@ -204,9 +205,15 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
 
   const [types, setTypes] = useState<string[]>(searchParams.get('type')?.split(',') ?? []);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [date1, setDate1] = useState<Date | undefined>(new Date(moment(searchParams.get('release_date')).format('DD/MM/YYYY') ?? ''));
-  const [dates2, setDates2] = useState<Date | undefined>(new Date(prepareDate(searchParams.get('from_date') ?? '')));
-  const [dates3, setDates3] = useState<Date | undefined>(new Date(prepareDate(searchParams.get('until_date') ?? '')));
+  const [date1, setDate1] = useState<Date | undefined>(
+    searchParams.get('release_date') ? new Date(prepareDate(searchParams.get('release_date') ?? '')) : undefined
+  );
+  const [dates2, setDates2] = useState<Date | undefined>(
+    searchParams.get('from_date') ? new Date(prepareDate(searchParams.get('from_date') ?? '')) : undefined
+  );
+  const [dates3, setDates3] = useState<Date | undefined>(
+    searchParams.get('until_date') ? new Date(prepareDate(searchParams.get('until_date') ?? '')) : undefined
+  );
 
   const onTypeChange = (event: CheckboxChangeParams) => {
     let selectedTypes = [...types];
@@ -285,7 +292,7 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
           console.log('Load next page if last element is visible', currentPage);
           setCurrentPage((prevState) => prevState + 1);
           searchParams.set('page', (currentPage + 1).toString());
-          fetcher.submit({ page: searchParams.get('page') ?? '1', type: types.join(',') }, {});
+          fetcher.submit({ page: searchParams.get('page') ?? '1', type: types.join(','), release_date: date1?.toLocaleDateString() ?? '' }, {});
         }
       });
       if (node) {
@@ -313,10 +320,8 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
 
   const onReleaseDateChange = (event: CalendarChangeParams) => {
     setDate1((prevState) => event.value as Date);
-
     searchParams.delete('page');
     if (event.value) {
-      console.log(event.value);
       const momentDate1 = moment(event.value as Date).format('DD/MM/YYYY');
       searchParams.set('release_date', momentDate1);
       window.history.pushState({}, '', `${window.location.pathname}?${searchParams}`);
@@ -326,7 +331,7 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
         ? window.history.pushState({}, '', `${window.location.pathname}?${searchParams}`)
         : window.history.pushState({}, '', `${window.location.pathname}`);
     }
-    // window.location.search = searchParams.toString();
+    window.location.search = searchParams.toString();
   };
 
   return (
@@ -374,9 +379,9 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
               <label htmlFor='release_date'>Release Date</label>
               <Calendar
                 id='release_date'
-                name={searchParams.get('release_date') || date1?.getDate() ? 'release_date' : ''}
+                name={searchParams.get('release_date') || date1 ? 'release_date' : ''}
                 dateFormat='dd/mm/yy'
-                value={date1?.getDate() ? date1 : undefined}
+                value={date1}
                 onChange={onReleaseDateChange}
                 showIcon
               />
@@ -386,9 +391,9 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
               <label htmlFor='from_date'>From Date</label>
               <Calendar
                 id='from_date'
-                name={searchParams.get('from_date') || dates2?.getDate() ? 'from_date' : ''}
+                name={searchParams.get('from_date') || dates2 ? 'from_date' : ''}
                 dateFormat='dd/mm/yy'
-                value={dates2?.getDate() ? dates2 : undefined}
+                value={dates2}
                 onChange={(e: CalendarChangeParams) => setDates2(e.value as Date)}
                 showIcon
               />
@@ -398,9 +403,9 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
               <label htmlFor='until_date'>Until Date</label>
               <Calendar
                 id='until_date'
-                name={searchParams.get('until_date') || dates3?.getDate() ? 'until_date' : ''}
+                name={searchParams.get('until_date') || dates3 ? 'until_date' : ''}
                 dateFormat='dd/mm/yy'
-                value={dates3?.getDate() ? dates3 : undefined}
+                value={dates3}
                 onChange={(e: CalendarChangeParams) => setDates3(e.value as Date)}
                 showIcon
               />
@@ -418,7 +423,7 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
               />
             </label>
 
-            <div className='field'>
+            <div className='field' style={{ width: '50%' }}>
               <h5>
                 Range: [{rangeValues[0]}, {rangeValues[1]}]
               </h5>
