@@ -57,7 +57,7 @@ function App() {
               </AuthorizedRoute>
             }
             action={loginAction}
-            // errorElement={<div>Oops! Login error. Line 33</div>}
+            // errorElement={<div>Oops! Login error. Line 60</div>}
           />
           <Route
             path='login-gform'
@@ -66,7 +66,7 @@ function App() {
                 <LoginPageWithGForm />
               </AuthorizedRoute>
             }
-            // errorElement={<div>Oops! Login error. Line 33</div>}
+            // errorElement={<div>Oops! Login error. Line 69</div>}
           />
           <Route
             path='forgot-password'
@@ -76,13 +76,13 @@ function App() {
               </AuthorizedRoute>
             }
             action={forgotPasswordAction}
-            // errorElement={<div>Oops! Login error. Line 33</div>}
+            // errorElement={<div>Oops! Login error. Line 79</div>}
           />
           <Route
             path='search'
             element={<SearchPageWithInfiniteScrolling />}
             loader={searchWithInfiniteScrollingLoader}
-            errorElement={<div>Oops! Fetch error. Line 52</div>}
+            errorElement={<div>Oops! Fetch error. Line 85</div>}
           />
           <Route
             path='product/:productId'

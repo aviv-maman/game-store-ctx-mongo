@@ -9,10 +9,11 @@ import { useGlobalContext } from '../core/context/initialContextState';
 //PrimeReact
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
+import { Password } from 'primereact/password';
 //GForm
 import { GForm, GInput } from 'gform-react';
 import type { GFormState, GInputState, IForm } from 'gform-react';
-import { Password } from 'primereact/password';
+//Helpers
 import { validators } from '../app/helpers/validators';
 
 //API calls

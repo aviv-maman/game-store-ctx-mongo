@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FC, MutableRefObject } from 'react';
 //React Router DOM
-import { Form, useFetcher, useLoaderData, useNavigate, useNavigation, useSearchParams, useSubmit } from 'react-router-dom';
+import { useFetcher, useLoaderData, useNavigate, useSearchParams } from 'react-router-dom';
 import type { LoaderFunctionArgs } from 'react-router-dom';
 //API
 import { itemsAPI, PageType } from '../app/services/itemAPI';
@@ -15,15 +15,14 @@ import { InputText } from 'primereact/inputtext';
 import { Checkbox } from 'primereact/checkbox';
 import type { CheckboxChangeParams } from 'primereact/checkbox';
 import { Calendar } from 'primereact/calendar';
-import type { CalendarChangeParams } from 'primereact/calendar';
+import type { CalendarChangeParams, CalendarValueType } from 'primereact/calendar';
 import { Dropdown } from 'primereact/dropdown';
 import type { DropdownChangeParams } from 'primereact/dropdown';
-import { Paginator } from 'primereact/paginator';
-import type { PaginatorPageState } from 'primereact/paginator';
 import { Slider } from 'primereact/slider';
 import type { SliderChangeParams, SliderValueType } from 'primereact/slider';
 import { AutoComplete } from 'primereact/autocomplete';
 import type { AutoCompleteChangeParams, AutoCompleteSelectParams } from 'primereact/autocomplete';
+import moment from 'moment';
 
 type SearchPageWithInfiniteScrollingProps = {};
 
@@ -39,7 +38,7 @@ const prepareDate = (date: string) => {
 //Loader
 export async function searchWithInfiniteScrollingLoader({
   request,
-}: LoaderFunctionArgs): Promise<{ fetchedGames?: Game[]; q: string; totalCount: number; currentCount: number }> {
+}: LoaderFunctionArgs): Promise<{ fetchedGames?: Game[]; totalCount: number; currentCount: number }> {
   const url = new URL(request.url);
   if (!url.searchParams.get('page') || Number(url.searchParams.get('page')) === 0) {
     url.searchParams.set('page', '1');
@@ -55,7 +54,7 @@ export async function searchWithInfiniteScrollingLoader({
   const order = orderBy[0] ? mongoOrderByOperator + mongoOrderByFieldPath : '-release_date';
 
   const page = Number(url.searchParams.get('page'));
-  console.log('loader - page', page);
+  console.log('page:', page, 'type:', type);
 
   const fromDate = url.searchParams.get('from_date') ?? '';
   const from_date = fromDate ? prepareDate(fromDate) : '';
@@ -104,7 +103,15 @@ export async function searchWithInfiniteScrollingLoader({
   const { success, data, totalCount, currentCount } = {
     success: true,
     data: [
-      { id: Math.random() * 9999, name: `#01 of page ${page}`, price: 2, description: 'bb', developer: ['a'], publisher: ['f'], type: 'game' },
+      {
+        id: Math.random() * 9999,
+        name: `#01 of page ${page}`,
+        price: 2,
+        description: `q: ${q} | type: ${type} | release date: ${release_date} | from date: ${from_date} | until date: ${until_date} | order: ${order}`,
+        developer: ['a'],
+        publisher: ['f'],
+        type: 'game',
+      },
       { id: Math.random() * 9999, name: `#02 of page ${page}`, price: 2, description: 'bb', developer: ['a'], publisher: ['f'], type: 'game' },
       { id: Math.random() * 9999, name: `#03 of page ${page}`, price: 2, description: 'bb', developer: ['a'], publisher: ['f'], type: 'game' },
       { id: Math.random() * 9999, name: `#04 of page ${page}`, price: 2, description: 'bb', developer: ['a'], publisher: ['f'], type: 'game' },
@@ -125,7 +132,7 @@ export async function searchWithInfiniteScrollingLoader({
       statusText: 'Error 404: Products Not Found',
     });
   }
-  return { fetchedGames: data, q, totalCount, currentCount };
+  return { fetchedGames: data, totalCount, currentCount };
 }
 
 const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> = ({}) => {
@@ -135,9 +142,6 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
     totalCount: number;
     currentCount: number;
   };
-  const navigation = useNavigation(); //useNavigation to add global pending UI. navigation.state returns "idle" | "submitting" | "loading". For pagination
-  const searching = navigation.location && new URLSearchParams(navigation.location.search).has('q');
-  const submit = useSubmit();
   const navigate = useNavigate();
 
   //The useFetcher hook allows us to communicate with loaders and actions without causing a navigation
@@ -198,11 +202,11 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
         }
   );
 
-  const [types, setTypes] = useState<string[]>([]);
+  const [types, setTypes] = useState<string[]>(searchParams.get('type')?.split(',') ?? []);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [date1, setDate1] = useState<Date>(new Date(prepareDate(searchParams.get('release_date') ?? '')));
-  const [dates2, setDates2] = useState<Date>(new Date(prepareDate(searchParams.get('from_date') ?? '')));
-  const [dates3, setDates3] = useState<Date>(new Date(prepareDate(searchParams.get('until_date') ?? '')));
+  const [date1, setDate1] = useState<Date | undefined>(new Date(moment(searchParams.get('release_date')).format('DD/MM/YYYY') ?? ''));
+  const [dates2, setDates2] = useState<Date | undefined>(new Date(prepareDate(searchParams.get('from_date') ?? '')));
+  const [dates3, setDates3] = useState<Date | undefined>(new Date(prepareDate(searchParams.get('until_date') ?? '')));
 
   const onTypeChange = (event: CheckboxChangeParams) => {
     let selectedTypes = [...types];
@@ -212,6 +216,17 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
       selectedTypes.splice(selectedTypes.indexOf(event.value), 1);
     }
     setTypes((prevState) => selectedTypes);
+    searchParams.delete('page');
+    if (selectedTypes.length > 0) {
+      searchParams.set('type', `${selectedTypes.join(',')}`);
+      window.history.pushState({}, '', `${window.location.pathname}?${searchParams}`);
+    } else {
+      searchParams.delete('type');
+      searchParams.keys.length > 0
+        ? window.history.pushState({}, '', `${window.location.pathname}?${searchParams}`)
+        : window.history.pushState({}, '', `${window.location.pathname}`);
+    }
+    window.location.search = searchParams.toString();
   };
 
   const orderByItems = [
@@ -225,32 +240,11 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
 
   function handleOrderBy(event: DropdownChangeParams) {
     setSort((prevState) => event.value);
-
-    //remove page
+    //Add new params (sort) and redirect to first page
     searchParams.delete('page');
-
-    //add new params (sort) and redirect to first page
     searchParams.set('sort', `${event.value.field},${event.value.direction}`);
     window.location.search = searchParams.toString();
   }
-
-  const [basicFirst, setBasicFirst] = useState(0);
-
-  const onPageChange = async (event: PaginatorPageState) => {
-    setCurrentPage(event.page + 1);
-    setBasicFirst(event.first);
-    setItemsPerPage(event.rows);
-
-    searchParams.set('page', (1 + event.page).toString());
-    console.log('event.first:', event.first, 'event.page+1:', event.page + 1);
-
-    window.history.pushState({}, '', `${window.location.pathname}?${searchParams}`);
-
-    const page = Number(searchParams.get('page'));
-    const type = searchParams.get('type')?.split(',') ?? [];
-
-    submit({ page: page.toString(), type: type.join(',') }, {});
-  };
 
   const [qValue, setQValue] = useState(q);
   let searchDebounce: NodeJS.Timeout;
@@ -288,11 +282,10 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
       observer.current = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting && hasNextPage && fetcher.state === 'idle') {
           //Load next page if last element is visible
-          console.log('Load next page if last element is visible');
+          console.log('Load next page if last element is visible', currentPage);
           setCurrentPage((prevState) => prevState + 1);
-          console.log(currentPage);
           searchParams.set('page', (currentPage + 1).toString());
-          fetcher.submit({ page: (currentPage + 1).toString() }, {});
+          fetcher.submit({ page: searchParams.get('page') ?? '1', type: types.join(',') }, {});
         }
       });
       if (node) {
@@ -304,27 +297,46 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
 
   useEffect(() => {
     if (fetcher.state === 'idle' && fetcher.data?.fetchedGames) {
-      console.log(fetcher.data);
-      setInfiniteScroll((prevState) => [...prevState, ...fetcher.data?.fetchedGames]);
+      if (searchParams.get('page') === '1' || !searchParams.get('page')) {
+        setInfiniteScroll((prevState) => fetcher.data?.fetchedGames);
+      } else {
+        setInfiniteScroll((prevState) => [...prevState, ...fetcher.data?.fetchedGames]);
+      }
     }
   }, [fetcher.data?.fetchedGames]);
+
+  const onSearch = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    searchParams.delete('page');
+    // types.length > 0 ? searchParams.set('type', `${types.join(',')}`) : searchParams.delete('type');
+    fetcher.submit({ type: types.join(',') }, {});
+  };
+
+  const onReleaseDateChange = (event: CalendarChangeParams) => {
+    setDate1((prevState) => event.value as Date);
+
+    searchParams.delete('page');
+    if (event.value) {
+      console.log(event.value);
+      const momentDate1 = moment(event.value as Date).format('DD/MM/YYYY');
+      searchParams.set('release_date', momentDate1);
+      window.history.pushState({}, '', `${window.location.pathname}?${searchParams}`);
+    } else {
+      searchParams.delete('release_date');
+      searchParams.keys.length > 0
+        ? window.history.pushState({}, '', `${window.location.pathname}?${searchParams}`)
+        : window.history.pushState({}, '', `${window.location.pathname}`);
+    }
+    // window.location.search = searchParams.toString();
+  };
 
   return (
     <div>
       <fetcher.Form method='get' id='search-form' role='search'>
-        <div className='grid p-fluid'>
+        <div className=''>
           <h1>Search Page</h1>
           <div className='col-12 md:col-4'>
-            <div className='p-inputgroup'>
-              <InputText
-                id='q'
-                name={searchParams.get('q') || qValue.length ? 'q' : ''}
-                placeholder='Search Products'
-                type='search'
-                // value={qValue}
-              />
-              <Button type='submit' icon='pi pi-search' className='p-button-warning' />
-              <h5>Basic</h5>
+            <div className=''>
+              <h5>Auto Complete</h5>
               <AutoComplete
                 value={selectedCountry1}
                 suggestions={filteredCountries}
@@ -334,7 +346,9 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
                 aria-label='Countries'
                 dropdownAriaLabel='Select Country'
                 onSelect={(e: AutoCompleteSelectParams) => navigate(`/product/${e.value.type}/${e.value.slug}`)}
+                delay={1000}
               />
+              <Button type='button' icon='pi pi-search' className='p-button-warning' onClick={(e) => onSearch(e)} />
             </div>
 
             <h5>Product Type</h5>
@@ -360,10 +374,10 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
               <label htmlFor='release_date'>Release Date</label>
               <Calendar
                 id='release_date'
-                name={searchParams.get('release_date') || date1.getDate() ? 'release_date' : ''}
+                name={searchParams.get('release_date') || date1?.getDate() ? 'release_date' : ''}
                 dateFormat='dd/mm/yy'
-                value={date1}
-                onChange={(e: CalendarChangeParams) => setDate1(e.value as Date)}
+                value={date1?.getDate() ? date1 : undefined}
+                onChange={onReleaseDateChange}
                 showIcon
               />
             </div>
@@ -372,9 +386,9 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
               <label htmlFor='from_date'>From Date</label>
               <Calendar
                 id='from_date'
-                name={searchParams.get('from_date') || dates2.getDate() ? 'from_date' : ''}
+                name={searchParams.get('from_date') || dates2?.getDate() ? 'from_date' : ''}
                 dateFormat='dd/mm/yy'
-                value={dates2}
+                value={dates2?.getDate() ? dates2 : undefined}
                 onChange={(e: CalendarChangeParams) => setDates2(e.value as Date)}
                 showIcon
               />
@@ -384,9 +398,9 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
               <label htmlFor='until_date'>Until Date</label>
               <Calendar
                 id='until_date'
-                name={searchParams.get('until_date') || dates3.getDate() ? 'until_date' : ''}
+                name={searchParams.get('until_date') || dates3?.getDate() ? 'until_date' : ''}
                 dateFormat='dd/mm/yy'
-                value={dates3}
+                value={dates3?.getDate() ? dates3 : undefined}
                 onChange={(e: CalendarChangeParams) => setDates3(e.value as Date)}
                 showIcon
               />
@@ -404,10 +418,13 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
               />
             </label>
 
-            <h5>
-              Range: [{rangeValues[0]}, {rangeValues[1]}]
-            </h5>
-            <Slider value={rangeValues as SliderValueType} onChange={(e: SliderChangeParams) => setRangeValues(e.value as number[])} range />
+            <div className='field'>
+              <h5>
+                Range: [{rangeValues[0]}, {rangeValues[1]}]
+              </h5>
+              <Slider value={rangeValues as SliderValueType} onChange={(e: SliderChangeParams) => setRangeValues(e.value as number[])} range />
+            </div>
+
             <InputText
               id='min_price'
               name={rangeValues[0] !== 0 || rangeValues[1] !== 100 ? 'min_price' : ''}
@@ -428,7 +445,7 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
       <GameList items={infiniteScroll} elementRef={elementRef} />
 
       <div
-        className='outerbox'
+        className='outerBox'
         style={{
           border: '1px solid red',
           overflowY: 'scroll',
@@ -438,7 +455,7 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
         }}
         onScroll={onScroll}>
         <div
-          className='innerbox'
+          className='innerBox'
           style={{
             position: 'relative',
             height: innerHeight,
@@ -446,14 +463,6 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
           {displayMovieItems()}
         </div>
       </div>
-
-      <Paginator
-        first={currentPage ? itemsPerPage * (currentPage - 1) : 0}
-        rows={itemsPerPage}
-        totalRecords={totalCount}
-        // rowsPerPageOptions={[10, 15, 20]}
-        onPageChange={onPageChange}
-      />
     </div>
   );
 };
