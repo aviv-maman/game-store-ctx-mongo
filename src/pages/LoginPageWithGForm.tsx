@@ -12,16 +12,16 @@ import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
 //GForm
 import { GForm, GInput } from 'gform-react';
-import type { GFormState, GInputState, IForm } from 'gform-react';
+import type { GFormState, Form, IForm } from 'gform-react';
 //Helpers
 import { validators } from '../app/helpers/validators';
 
 //API calls
 const api = authAPI();
 
-interface LoginForm extends IForm {
-  email: GInputState<string>;
-  password: GInputState<string>;
+interface LoginForm extends Form {
+  email: string;
+  password: string;
 }
 
 export default function LoginPageWithGForm() {
