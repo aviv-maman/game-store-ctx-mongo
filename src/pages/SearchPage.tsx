@@ -13,17 +13,17 @@ import GameList from '../components/GameList';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Checkbox } from 'primereact/checkbox';
-import type { CheckboxChangeParams } from 'primereact/checkbox';
+import type { CheckboxChangeEvent } from 'primereact/checkbox';
 import { Calendar } from 'primereact/calendar';
-import type { CalendarChangeParams } from 'primereact/calendar';
+import type { CalendarChangeEvent } from 'primereact/calendar';
 import { Dropdown } from 'primereact/dropdown';
-import type { DropdownChangeParams } from 'primereact/dropdown';
+import type { DropdownChangeEvent } from 'primereact/dropdown';
 import { Paginator } from 'primereact/paginator';
-import type { PaginatorPageState } from 'primereact/paginator';
+import type { PaginatorPageChangeEvent } from 'primereact/paginator';
 import { Slider } from 'primereact/slider';
-import type { SliderChangeParams, SliderValueType } from 'primereact/slider';
+import type { SliderChangeEvent } from 'primereact/slider';
 import { AutoComplete } from 'primereact/autocomplete';
-import type { AutoCompleteChangeParams, AutoCompleteSelectParams } from 'primereact/autocomplete';
+import type { AutoCompleteChangeEvent, AutoCompleteSelectEvent } from 'primereact/autocomplete';
 
 type SearchPageProps = {};
 
@@ -135,7 +135,7 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
   const [dates2, setDates2] = useState<Date>(new Date(prepareDate(searchParams.get('from_date') ?? '')));
   const [dates3, setDates3] = useState<Date>(new Date(prepareDate(searchParams.get('until_date') ?? '')));
 
-  const onTypeChange = (event: CheckboxChangeParams) => {
+  const onTypeChange = (event: CheckboxChangeEvent) => {
     let selectedTypes = [...types];
     if (event.checked) {
       selectedTypes.push(event.value);
@@ -154,7 +154,7 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
     { label: 'Price (High-Low)', value: { field: 'price', direction: 'desc' } },
   ];
 
-  function handleOrderBy(event: DropdownChangeParams) {
+  function handleOrderBy(event: DropdownChangeEvent) {
     setSort((prevState) => event.value);
 
     //remove page
@@ -167,7 +167,7 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
 
   const [basicFirst, setBasicFirst] = useState(0);
 
-  const onPageChange = async (event: PaginatorPageState) => {
+  const onPageChange = async (event: PaginatorPageChangeEvent) => {
     setCurrentPage(event.page + 1);
     setBasicFirst(event.first);
     setItemsPerPage(event.rows);
@@ -229,10 +229,10 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
                 suggestions={filteredCountries}
                 completeMethod={searchCountry}
                 field='name'
-                onChange={(e: AutoCompleteChangeParams) => setSelectedCountry1(e.value)}
+                onChange={(e: AutoCompleteChangeEvent) => setSelectedCountry1(e.value)}
                 aria-label='Countries'
                 dropdownAriaLabel='Select Country'
-                onSelect={(e: AutoCompleteSelectParams) => navigate(`/product/${e.value.type}/${e.value.slug}`)}
+                onSelect={(e: AutoCompleteSelectEvent) => navigate(`/product/${e.value.type}/${e.value.slug}`)}
               />
             </div>
 
@@ -253,7 +253,7 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
               <Checkbox inputId='type4' value={PageType.company} onChange={onTypeChange} checked={types.indexOf(PageType.company) !== -1} />
               <label htmlFor='types4'>{PageType.company}</label>
             </div>
-            <InputText name={searchParams.get('type') || types.length ? 'type' : ''} type='text' value={types} className='p-hidden' />
+            <InputText name={searchParams.get('type') || types.length ? 'type' : ''} type='text' value={types.join(', ')} className='p-hidden' />
 
             <div className='col-12 md:col-4'>
               <label htmlFor='release_date'>Release Date</label>
@@ -262,7 +262,7 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
                 name={searchParams.get('release_date') || date1.getDate() ? 'release_date' : ''}
                 dateFormat='dd/mm/yy'
                 value={date1}
-                onChange={(e: CalendarChangeParams) => setDate1(e.value as Date)}
+                onChange={(e: CalendarChangeEvent) => setDate1(e.value as Date)}
                 showIcon
               />
             </div>
@@ -274,7 +274,7 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
                 name={searchParams.get('from_date') || dates2.getDate() ? 'from_date' : ''}
                 dateFormat='dd/mm/yy'
                 value={dates2}
-                onChange={(e: CalendarChangeParams) => setDates2(e.value as Date)}
+                onChange={(e: CalendarChangeEvent) => setDates2(e.value as Date)}
                 showIcon
               />
             </div>
@@ -286,7 +286,7 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
                 name={searchParams.get('until_date') || dates3.getDate() ? 'until_date' : ''}
                 dateFormat='dd/mm/yy'
                 value={dates3}
-                onChange={(e: CalendarChangeParams) => setDates3(e.value as Date)}
+                onChange={(e: CalendarChangeEvent) => setDates3(e.value as Date)}
                 showIcon
               />
             </div>
@@ -306,19 +306,19 @@ const SearchPage: FC<SearchPageProps> = ({}) => {
             <h5>
               Range: [{rangeValues[0]}, {rangeValues[1]}]
             </h5>
-            <Slider value={rangeValues as SliderValueType} onChange={(e: SliderChangeParams) => setRangeValues(e.value as number[])} range />
+            <Slider value={[rangeValues[0], rangeValues[1]]} onChange={(e: SliderChangeEvent) => setRangeValues(e.value as number[])} range />
             <InputText
               id='min_price'
               name={rangeValues[0] !== 0 || rangeValues[1] !== 100 ? 'min_price' : ''}
               type='number'
-              value={rangeValues[0]}
+              value={rangeValues[0].toString()}
               className='p-hidden'
             />
             <InputText
               id='max_price'
               name={rangeValues[0] !== 0 || rangeValues[1] !== 100 ? 'max_price' : ''}
               type='number'
-              value={rangeValues[1]}
+              value={rangeValues[1].toString()}
               className='p-hidden'
             />
           </div>

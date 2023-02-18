@@ -7,11 +7,11 @@ import { Form } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 //PrimeReact
 import { MultiSelect } from 'primereact/multiselect';
-import type { MultiSelectChangeParams } from 'primereact/multiselect';
+import type { MultiSelectChangeEvent } from 'primereact/multiselect';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
-import type { ToastAppendToType } from 'primereact/toast';
+import type { ToastProps } from 'primereact/toast';
 //Context
 import { useGlobalContext } from '../core/context/initialContextState';
 //Components
@@ -25,7 +25,7 @@ export default function AddFormProduct({ data }: FormAddProductProps) {
   const { state } = useGlobalContext();
   const { t } = useTranslation();
 
-  const toastRef: MutableRefObject<ToastAppendToType | any> = useRef(null);
+  const toastRef: MutableRefObject<ToastProps | any> = useRef(null);
 
   //For Validation etc
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -46,7 +46,7 @@ export default function AddFormProduct({ data }: FormAddProductProps) {
     { label: 'Bethesda Softworks', value: 'BTSW' },
   ];
 
-  function handleSelect(event: MultiSelectChangeParams) {
+  function handleSelect(event: MultiSelectChangeEvent) {
     setPublishers((prevState) => event.value);
     if (toastRef?.current) {
       toastRef.current?.show({ severity: 'info', summary: 'Selected', detail: event.value, life: 3000 });

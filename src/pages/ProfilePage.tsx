@@ -16,7 +16,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { languages } from '../core/languages';
 import { Calendar } from 'primereact/calendar';
 import { FileUpload } from 'primereact/fileupload';
-import type { FileUploadHandlerParam } from 'primereact/fileupload';
+import type { FileUploadHandlerEvent } from 'primereact/fileupload';
 import { Toast } from 'primereact/toast';
 import { convertFileToBase64 } from '../app/helpers/convertFileToBase64';
 import { customBase64Uploader } from './ProfileActionsAndLoaders';
@@ -54,7 +54,7 @@ export default function ProfilePage() {
     setFileData(fileAsBase64);
   }
 
-  const customUploader = async (event: FileUploadHandlerParam) => {
+  const customUploader = async (event: FileUploadHandlerEvent) => {
     const file = event.files[0];
     console.log('file', file);
     // try {

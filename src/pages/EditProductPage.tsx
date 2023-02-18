@@ -11,7 +11,7 @@ import type { Game } from '../app/services/itemAPI';
 import EditFormProduct from '../components/EditFormProduct';
 //PrimeReact
 import { Toast } from 'primereact/toast';
-import type { ToastAppendToType } from 'primereact/toast';
+import type { ToastProps } from 'primereact/toast';
 
 //API calls
 const api = itemsAPI();
@@ -49,7 +49,7 @@ export async function editProductAction({ request, params }: ActionFunctionArgs)
 export default function EditProductPage() {
   const loaderData = useLoaderData() as EditProductLoader;
   const actionData = useActionData() as EditProductAction;
-  const toastRef: MutableRefObject<ToastAppendToType | any> = useRef(null);
+  const toastRef: MutableRefObject<ToastProps | any> = useRef(null);
 
   return (
     <div style={{ border: '1px solid red' }}>

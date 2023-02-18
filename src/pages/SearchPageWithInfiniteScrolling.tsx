@@ -12,16 +12,17 @@ import GameList from '../components/GameList';
 //PrimeReact
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
+import { InputNumber } from 'primereact/inputnumber';
 import { Checkbox } from 'primereact/checkbox';
-import type { CheckboxChangeParams } from 'primereact/checkbox';
+import type { CheckboxChangeEvent } from 'primereact/checkbox';
 import { Calendar } from 'primereact/calendar';
-import type { CalendarChangeParams, CalendarValueType } from 'primereact/calendar';
+import type { CalendarChangeEvent } from 'primereact/calendar';
 import { Dropdown } from 'primereact/dropdown';
-import type { DropdownChangeParams } from 'primereact/dropdown';
+import type { DropdownChangeEvent } from 'primereact/dropdown';
 import { Slider } from 'primereact/slider';
-import type { SliderChangeParams, SliderValueType } from 'primereact/slider';
+import type { SliderChangeEvent } from 'primereact/slider';
 import { AutoComplete } from 'primereact/autocomplete';
-import type { AutoCompleteChangeParams, AutoCompleteSelectParams } from 'primereact/autocomplete';
+import type { AutoCompleteChangeEvent, AutoCompleteSelectEvent } from 'primereact/autocomplete';
 import moment from 'moment';
 
 type SearchPageWithInfiniteScrollingProps = {};
@@ -215,7 +216,7 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
     searchParams.get('until_date') ? new Date(prepareDate(searchParams.get('until_date') ?? '')) : undefined
   );
 
-  const onTypeChange = (event: CheckboxChangeParams) => {
+  const onTypeChange = (event: CheckboxChangeEvent) => {
     let selectedTypes = [...types];
     if (event.checked) {
       selectedTypes.push(event.value);
@@ -245,7 +246,7 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
     { label: 'Price (High-Low)', value: { field: 'price', direction: 'desc' } },
   ];
 
-  function handleOrderBy(event: DropdownChangeParams) {
+  function handleOrderBy(event: DropdownChangeEvent) {
     setSort((prevState) => event.value);
     //Add new params (sort) and redirect to first page
     searchParams.delete('page');
@@ -318,7 +319,7 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
     fetcher.submit({ type: types.join(',') }, {});
   };
 
-  const onReleaseDateChange = (event: CalendarChangeParams) => {
+  const onReleaseDateChange = (event: CalendarChangeEvent) => {
     setDate1((prevState) => event.value as Date);
     searchParams.delete('page');
     if (event.value) {
@@ -342,18 +343,20 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
           <div className='col-12 md:col-4'>
             <div className=''>
               <h5>Auto Complete</h5>
-              <AutoComplete
-                value={selectedCountry1}
-                suggestions={filteredCountries}
-                completeMethod={searchCountry}
-                field='name'
-                onChange={(e: AutoCompleteChangeParams) => setSelectedCountry1(e.value)}
-                aria-label='Countries'
-                dropdownAriaLabel='Select Country'
-                onSelect={(e: AutoCompleteSelectParams) => navigate(`/product/${e.value.type}/${e.value.slug}`)}
-                delay={1000}
-              />
-              <Button type='button' icon='pi pi-search' className='p-button-warning' onClick={(e) => onSearch(e)} />
+              <div className='p-inputgroup'>
+                <AutoComplete
+                  value={selectedCountry1}
+                  suggestions={filteredCountries}
+                  completeMethod={searchCountry}
+                  field='name'
+                  onChange={(e: AutoCompleteChangeEvent) => setSelectedCountry1(e.value)}
+                  aria-label='Countries'
+                  dropdownAriaLabel='Select Country'
+                  onSelect={(e: AutoCompleteSelectEvent) => navigate(`/product/${e.value.type}/${e.value.slug}`)}
+                  delay={1000}
+                />
+                <Button type='button' icon='pi pi-search' className='p-button-warning' onClick={(e) => onSearch(e)} />
+              </div>
             </div>
 
             <h5>Product Type</h5>
@@ -373,7 +376,7 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
               <Checkbox inputId='type4' value={PageType.company} onChange={onTypeChange} checked={types.indexOf(PageType.company) !== -1} />
               <label htmlFor='types4'>{PageType.company}</label>
             </div>
-            <InputText name={searchParams.get('type') || types.length ? 'type' : ''} type='text' value={types} className='p-hidden' />
+            <InputText name={searchParams.get('type') || types.length ? 'type' : ''} type='text' value={types.join(', ')} className='p-hidden' />
 
             <div className='col-12 md:col-4'>
               <label htmlFor='release_date'>Release Date</label>
@@ -394,7 +397,7 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
                 name={searchParams.get('from_date') || dates2 ? 'from_date' : ''}
                 dateFormat='dd/mm/yy'
                 value={dates2}
-                onChange={(e: CalendarChangeParams) => setDates2(e.value as Date)}
+                onChange={(e: CalendarChangeEvent) => setDates2(e.value as Date)}
                 showIcon
               />
             </div>
@@ -406,7 +409,7 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
                 name={searchParams.get('until_date') || dates3 ? 'until_date' : ''}
                 dateFormat='dd/mm/yy'
                 value={dates3}
-                onChange={(e: CalendarChangeParams) => setDates3(e.value as Date)}
+                onChange={(e: CalendarChangeEvent) => setDates3(e.value as Date)}
                 showIcon
               />
             </div>
@@ -427,22 +430,22 @@ const SearchPageWithInfiniteScrolling: FC<SearchPageWithInfiniteScrollingProps> 
               <h5>
                 Range: [{rangeValues[0]}, {rangeValues[1]}]
               </h5>
-              <Slider value={rangeValues as SliderValueType} onChange={(e: SliderChangeParams) => setRangeValues(e.value as number[])} range />
+              <Slider value={[rangeValues[0], rangeValues[1]]} onChange={(e: SliderChangeEvent) => setRangeValues(e.value as number[])} range />
             </div>
 
-            <InputText
+            <InputNumber
               id='min_price'
               name={rangeValues[0] !== 0 || rangeValues[1] !== 100 ? 'min_price' : ''}
               type='number'
               value={rangeValues[0]}
-              className='p-hidden'
+              className='p-sr-only'
             />
-            <InputText
+            <InputNumber
               id='max_price'
               name={rangeValues[0] !== 0 || rangeValues[1] !== 100 ? 'max_price' : ''}
               type='number'
               value={rangeValues[1]}
-              className='p-hidden'
+              className='p-sr-only'
             />
           </div>
         </div>
