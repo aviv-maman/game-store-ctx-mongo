@@ -26,7 +26,7 @@ export async function signUpAction({ request, params }: ActionFunctionArgs) {
     if (updates.provider === 'username') {
       response = await api.signUp(updates);
     } else {
-      response = { user: {} };
+      response = { user: null };
       window.location.assign(`http://localhost:8000/api/v1/users/auth/${updates.provider}`);
     }
     // const { user, message } = await api.signUp(updates);
