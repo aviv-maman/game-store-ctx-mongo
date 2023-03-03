@@ -15,10 +15,12 @@ export type Query = {
 };
 
 export type SignUpForm = {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
   passwordConfirm: string;
+  provider: 'username' | 'google' | 'facebook' | 'twitter' | 'github';
 };
 
 export type LogInForm = {
@@ -73,7 +75,7 @@ export type UpdateProfile = {
   locale?: string;
 };
 
-export type FirebaseAuthAPI = {
+export type MongoAuthAPI = {
   signUp: (formData: SignUpForm) => Promise<{ message: string; user: User }> | any;
   logOut: () => { message: string } | any;
   logIn: (formData: LogInForm) => Promise<{ message: string; user: User }> | any;
@@ -88,7 +90,7 @@ export type FirebaseAuthAPI = {
   updateProfile: (formData: UpdateProfile) => Promise<{ success: boolean; message: string }> | any;
 };
 
-export const authAPI = (): FirebaseAuthAPI => {
+export const authAPI = (): MongoAuthAPI => {
   return {
     signUp: async (formData: SignUpForm) => {
       const controller = new AbortController();
@@ -140,7 +142,6 @@ export const authAPI = (): FirebaseAuthAPI => {
       const controller = new AbortController();
       try {
         const userCredential = await axios.get('http://localhost:8000/api/v1/users/me', { withCredentials: true });
-        console.log('getMe', userCredential);
         return { message: 'User information was successfully sent.', user: userCredential.data.doc, status: userCredential.data.status };
       } catch (error: any) {
         if (controller.signal.aborted) {
