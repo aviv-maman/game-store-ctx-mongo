@@ -21,6 +21,7 @@ export type SignUpForm = {
   password: string;
   passwordConfirm: string;
   provider: 'username' | 'google' | 'facebook' | 'twitter' | 'github';
+  idToken?: string;
 };
 
 export type LogInForm = {
@@ -79,7 +80,7 @@ export type MongoAuthAPI = {
   signUp: (formData: SignUpForm) => Promise<{ message: string; user: User }> | any;
   logOut: () => { message: string } | any;
   logIn: (formData: LogInForm) => Promise<{ message: string; user: User }> | any;
-  // logInWithProvider: (provider: string) => Promise<{ message: string; user: any }> | any;
+  logInWithProvider: (provider: 'google' | 'facebook' | 'twitter' | 'github', idToken: string) => Promise<{ message: string; user: any }> | any;
   sendPasswordResetEmail: (email: string) => Promise<{ success: boolean; message: string }> | any;
   getMe: () => Promise<{ message: string; user: User }> | any;
   sendVerificationEmail: (email: string) => Promise<{ success: boolean; message: string }> | any;
@@ -153,31 +154,21 @@ export const authAPI = (): MongoAuthAPI => {
       }
       return () => controller.abort();
     },
-    // logInWithProvider: async (provider) => {
-    //   const controller = new AbortController();
-    //   let chosenProvider = new GoogleAuthProvider();
-    //   switch (provider) {
-    //     case 'google':
-    //       break;
-    //     case 'facebook':
-    //       chosenProvider = new FacebookAuthProvider();
-    //       break;
-    //     default:
-    //       break;
-    //   }
-    //   try {
-    //     const userCredential = await signInWithPopup(auth, chosenProvider);
-    //     return { message: 'A user was successfully logged in.', user: userCredential.user };
-    //   } catch (error: any) {
-    //     if (controller.signal.aborted) {
-    //       console.log('The request was cancelled:', controller.signal.reason);
-    //     } else {
-    //       console.log('There was a problem with login.');
-    //       throw error;
-    //     }
-    //   }
-    //   return () => controller.abort();
-    // },
+    logInWithProvider: async (provider, idToken) => {
+      const controller = new AbortController();
+      try {
+        const userCredential = await axios.post(`http://localhost:8000/api/v1/users/auth-${provider}`, { idToken }, { withCredentials: true });
+        return { message: 'A user was successfully logged in using provider.', user: userCredential.data.user };
+      } catch (error: any) {
+        if (controller.signal.aborted) {
+          console.log('The request was cancelled:', controller.signal.reason);
+        } else {
+          console.log('There was a problem with login using provider.');
+          throw error;
+        }
+      }
+      return () => controller.abort();
+    },
     sendPasswordResetEmail: async (email) => {
       const controller = new AbortController();
       try {

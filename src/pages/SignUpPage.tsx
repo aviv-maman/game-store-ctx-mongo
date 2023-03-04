@@ -12,8 +12,6 @@ import { useGlobalContext } from '../core/context/initialContextState';
 //PrimeReact
 import { Button } from 'primereact/button';
 import { PrimeIcons } from 'primereact/api';
-//JWT-Decode
-import jwt_decode from 'jwt-decode';
 
 //API calls
 const api = authAPI();
@@ -22,12 +20,11 @@ export async function signUpAction({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData();
   const updates = Object.fromEntries(formData) as SignUpForm; //To get a single field: const firstName = formData.get("first");
   try {
-    let response = {} as any;
+    let response = {};
     if (updates.provider === 'username') {
       response = await api.signUp(updates);
     } else {
-      response = { user: null };
-      window.location.assign(`http://localhost:8000/api/v1/users/auth/${updates.provider}`);
+      response = await api.logInWithProvider(updates.provider, updates.idToken ?? '');
     }
     // const { user, message } = await api.signUp(updates);
     return response;
@@ -40,6 +37,7 @@ export async function signUpAction({ request, params }: ActionFunctionArgs) {
 
 export default function SignUpPage() {
   const [provider, setProvider] = useState(''); //['username', 'google', 'facebook', 'twitter', 'github']
+  const [idToken, setIdToken] = useState('');
 
   const { dispatch } = useGlobalContext(); //GlobalContext
   const navigate = useNavigate();
@@ -64,35 +62,22 @@ export default function SignUpPage() {
   useEffect(() => {
     /* global google */
     window?.google?.accounts.id.initialize({
-      client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
-      callback: (response: any) => {
-        const user = jwt_decode(response.credential);
-        console.log(user);
-        // dispatch({ type: GlobalActionKeys.UpdateUser, payload: user });
+      client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID as any,
+      callback: async (response: any) => {
+        const idToken = response.credential;
+        setIdToken(idToken);
+        try {
+          const userCredential = await api.logInWithProvider('google', idToken);
+          dispatch({ type: GlobalActionKeys.UpdateUser, payload: userCredential.user });
+        } catch (error: any) {
+          console.error(error);
+          return { code: error.code, message: error.message };
+        }
       },
     });
-
     window?.google?.accounts.id.renderButton(document.getElementById('signInDiv'), { theme: 'outline', size: 'large' });
-  }, []);
-
-  // const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-  //   event.preventDefault();
-  //   try {
-  //     await api.signUp({ email, password });
-  //   } catch (error: any) {
-  //     console.error(error);
-  //     throw error;
-  //   }
-  // };
-
-  // const handleSubmitProvider = async (provider: string) => {
-  //   try {
-  //     window.location.assign(`http://localhost:8000/api/v1/users/auth/${provider}`);
-  //   } catch (error: any) {
-  //     console.error(error);
-  //     throw error;
-  //   }
-  // };
+    window?.google?.accounts.id.renderButton(document.getElementById('signUpWithGoogleUsingAction'), { theme: 'outline', size: 'large' });
+  }, [dispatch]);
 
   return (
     <div>
@@ -127,13 +112,13 @@ export default function SignUpPage() {
           Sign Up
         </Button>
         <Button
+          id='signUpWithGoogleUsingAction'
           name={provider === 'google' ? 'provider' : undefined}
           type='submit'
-          icon={PrimeIcons.GOOGLE}
           onClick={(e) => setProvider('google')}
-          value={'google'}>
-          Continue with Google
-        </Button>
+          value={['google', idToken]}
+        />
+
         <div id='signInDiv' />
       </Form>
       {navigation.state !== 'idle' && <p>{'navigation.state loading'}</p>}
