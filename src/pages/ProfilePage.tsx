@@ -164,7 +164,7 @@ export default function ProfilePage() {
               />
               <div>
                 <Avatar image={state.user?.photo} icon='pi pi-user' size='xlarge' />
-                <h5>{state.user?.firstName.concat(' ', state.user?.lastName)}</h5>
+                <h5>{state.user?.firstName?.concat(' ', state.user?.lastName)}</h5>
                 {/* <input type='file' onChange={(e) => handleFile(e)} accept='image/*' />
                 <InputText id='photo' name='photo' type='text' value={fileData} className='p-hidden' /> */}
               </div>
